@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Babylon" default="LexerGen" basedir=".">
+
+    <target name="Clean">
+        <delete>
+            <fileset dir="src/mjlexer">
+                <exclude name="sym.java"/>
+            </fileset>
+            <fileset dir="src/mjparser"/>
+        </delete>
+    </target>
+
+
+    <target name="LexerGen" depends="Clean">
+        <java jar="lib/JFlex.jar" fork="true">
+            <arg value="-d"/>
+            <arg value="src/mjlexer"/>
+            <arg value="spec/mjlexer.lex"/>
+        </java>
+    </target>
+
+    <target name="ParserGen">
+        <java jar="lib/cup_v10k.jar" fork="true">
+            <arg value="-destdir"/>
+            <arg value="src/mjparser"/>
+            <arg value="-ast"/>
+            <arg value="ast"/>
+            <arg value="-parser"/>
+            <arg value="MJParser"/>
+            <arg value="-dump_states"/>
+            <arg value="-buildtree"/>
+            <arg value="spec/mjparser.cup"/>
+        </java>
+    </target>
+
+</project>
