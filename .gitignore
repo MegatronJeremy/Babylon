@@ -15,6 +15,13 @@ bin/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
 
+src/mjparser/MJParser.java
+src/mjparser/Yylex.java
+src/mjparser/sym.java
+src/ast
+
+spec/mjparser_astbuild.cup
+
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/

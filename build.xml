@@ -1,30 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="Babylon" default="LexerGen" basedir=".">
+<project name="Babylon" default="RegenCode" basedir=".">
 
     <target name="Clean">
         <delete>
-            <fileset dir="src/mjlexer">
-                <exclude name="sym.java"/>
+            <fileset dir="src/mjparser">
+                <exclude name="sym_old.java"/>
+                <exclude name="RuleVisitor.java"/>
             </fileset>
-            <fileset dir="src/mjparser"/>
+            <fileset dir="spec">
+                <exclude name="mjparser.cup"/>
+                <exclude name="mjparser_old.cup"/>
+                <exclude name="mjlexer.lex"/>
+            </fileset>
         </delete>
+        <delete dir="src/ast/"/>
     </target>
-
 
     <target name="LexerGen" depends="Clean">
         <java jar="lib/JFlex.jar" fork="true">
             <arg value="-d"/>
-            <arg value="src/mjlexer"/>
+            <arg value="src/mjparser"/>
             <arg value="spec/mjlexer.lex"/>
         </java>
     </target>
 
-    <target name="ParserGen">
+    <target name="ParserGen" depends="LexerGen">
         <java jar="lib/cup_v10k.jar" fork="true">
             <arg value="-destdir"/>
             <arg value="src/mjparser"/>
             <arg value="-ast"/>
-            <arg value="ast"/>
+            <arg value="src.ast"/>
             <arg value="-parser"/>
             <arg value="MJParser"/>
             <arg value="-dump_states"/>
@@ -32,5 +37,11 @@
             <arg value="spec/mjparser.cup"/>
         </java>
     </target>
+
+    <target name="Repackage" depends="ParserGen">
+        <replace dir="src" value="ast" token="src.ast" summary="true"/>
+    </target>
+
+    <target name="RegenCode" depends="Repackage"/>
 
 </project>

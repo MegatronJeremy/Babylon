@@ -1,4 +1,4 @@
-package mjlexer;
+package mjparser;
 
 import java_cup.runtime.Symbol;
 import org.apache.log4j.Logger;
@@ -10,7 +10,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 
-public class MJTest {
+public class MJLexerTest {
 
     static {
         DOMConfigurator.configure(Log4JUtils.instance().findLoggerConfigFile());
@@ -18,7 +18,7 @@ public class MJTest {
     }
 
     public static void main(String[] args) {
-        Logger log = Logger.getLogger(MJTest.class);
+        Logger log = Logger.getLogger(MJLexerTest.class);
 
         String sourceFile = "test/program.mj";
         try (Reader br = new BufferedReader(new FileReader(sourceFile))) {

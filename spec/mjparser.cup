@@ -18,7 +18,7 @@ parser code {:
     }
 
     public void syntax_error(Symbol cur_token) {
-        report_error("\nSyntax error", cur_token);
+        report_error("Syntax error", cur_token);
     }
 
     public void unrecovered_syntax_error(Symbol cur_token) throws java.lang.Exception {
@@ -29,7 +29,8 @@ parser code {:
     	errorDetected = true;
     	StringBuilder msg = new StringBuilder(message);
     	if (info instanceof Symbol)
-            msg.append (" on line ").append(((Symbol)info).left);
+            msg.append(" on line ")
+                .append(((Symbol)info).left);
         log.error(msg.toString());
     }
 
@@ -56,9 +57,9 @@ terminal Integer NUM_CONST;
 terminal Character CHAR_CONST;
 terminal Boolean BOOL_CONST;
 
-terminal PLUS, MINUS, MULTIPLY, DIVIDE, MODULO, EQUAL;
-terminal NOT_EQUAL, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL, AND;
-terminal OR, ASSIGN, INCREMENT, DECREMENT, SEMI, COLON, COMMA, PERIOD;
+terminal PLUS, MINUS, MULTIPLY, DIVIDE, MODULO, ASSIGN;
+terminal EQUAL, NOT_EQUAL, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL, AND;
+terminal OR, INCREMENT, DECREMENT, SEMI, COLON, COMMA, PERIOD;
 terminal LPAREN, RPAREN, LBRACKET, RBRACKET, LBRACE, RBRACE, ARROW;
 
 nonterminal Program;
@@ -78,10 +79,10 @@ nonterminal Designator, Label, Assignop, Relop, Addop, Mulop;
 
 precedence left ELSE; 
 
-Program ::= (Program) PROGRAM IDENT DeclList LBRACE MethodDeclList RBRACE
+Program ::= (ProgramClass) PROGRAM IDENT DeclList LBRACE MethodDeclList RBRACE
     ;
 
-DeclList ::= (DeclList) DeclList Decl
+DeclList ::= (DeclListClass) DeclList Decl
     | (NoDecl);
 
 Decl ::= (DeclConst) ConstDecl
@@ -89,10 +90,10 @@ Decl ::= (DeclConst) ConstDecl
     | (DeclClass) ClassDecl
     ;
 
-ConstDecl ::= (ConstDecl) CONST Type IDENT EQUAL ConstType ConstList SEMI
+ConstDecl ::= (ConstDeclClass) CONST Type IDENT ASSIGN ConstType ConstList SEMI
     ;
 
-ConstList ::= (ConstList) ConstList COMMA IDENT EQUAL ConstType
+ConstList ::= (ConstListClass) ConstList COMMA IDENT ASSIGN ConstType
     | (NoConstList)
     ;
 
@@ -101,14 +102,14 @@ ConstType ::= (ConstNum) NUM_CONST
     | (ConstBool) BOOL_CONST
     ;
 
-VarDeclList ::= (VarDeclList) VarDeclList VarDecl
+VarDeclList ::= (VarDeclListClass) VarDeclList VarDecl
     | (NoVarDeclList)
     ;
 
-VarDecl ::= (VarDecl) Type VarType VarList SEMI
+VarDecl ::= (VarDeclClass) Type VarType VarList SEMI
     ;
 
-VarList ::= (VarList) VarList COMMA VarType
+VarList ::= (VarListClass) VarList COMMA VarType
     | (NoVarList)
     ;
 
@@ -119,50 +120,50 @@ VarType ::= (VarScalar) IDENT
 ClassDecl ::= (ClassDeclList) CLASS IDENT ExtendsClause LBRACE ClassBody RBRACE
     ;
 
-ClassBody ::= (ClassBody) VarDeclList LBRACE OperationDeclBody RBRACE
+ClassBody ::= (ClassBodyClass) VarDeclList LBRACE OperationDeclBody RBRACE
     ;
 
-OperationDeclBody ::= (OperationDeclBody) ConstructorOrMethodDeclList
+OperationDeclBody ::= (OperationDeclBodyClass) ConstructorOrMethodDeclList
     ;
 
-ExtendsClause ::= (ExtendsClause) EXTENDS
+ExtendsClause ::= (ExtendsClauseClass) EXTENDS
     | (NoExtendsClause)
     ;
 
-ConstructorOrMethodDeclList ::= (ConstructorOrMethodDeclList) ConstructorOrMethodDeclList ConstructorOrMethodDecl
+ConstructorOrMethodDeclList ::= (ConstructorOrMethodDeclListClass) ConstructorOrMethodDeclList ConstructorOrMethodDecl
     | (NoConstructorOrMethodDeclList)
     ;
 
-ConstructorOrMethodDecl ::= (ConstructorDecl) IDENT LPAREN FormParsOpt RPAREN VarDeclList LBRACE StatementList RBRACE
-    | (MethodDecl) MethodDecl
+ConstructorOrMethodDecl ::= (ConstructorOptDecl) IDENT LPAREN FormParsOpt RPAREN VarDeclList LBRACE StatementList RBRACE
+    | (MethodOptDecl) MethodDecl
     ;
 
-MethodDeclList ::= (MethodDeclList) MethodDeclList MethodDecl
+MethodDeclList ::= (MethodDeclListClass) MethodDeclList MethodDecl
     | (NoMethodDeclList)
     ;
 
-MethodDecl ::= (MethodDecl) MethodType IDENT LPAREN FormParsOpt RPAREN VarDeclList LBRACE StatementList RBRACE
+MethodDecl ::= (MethodDeclClass) MethodType IDENT LPAREN FormParsOpt RPAREN VarDeclList LBRACE StatementList RBRACE
     ;
 
-MethodType ::= (MethodType) Type
+MethodType ::= (MethodTypeClass) Type
     | (MethodVoid) VOID
     ;
 
-FormParsOpt ::= (FormParsOpt) FormPars
+FormParsOpt ::= (FormParsOptClass) FormPars
     | (NoFormParsOpt)
     ;
 
-FormPars ::= (FormPars) Type VarType FormList SEMI
+FormPars ::= (FormParsClass) Type VarType FormList
     ;
 
-FormList ::= (FormList) FormList COMMA Type VarType
+FormList ::= (FormListClass) FormList COMMA Type VarType
     | (NoFormList)
     ;
 
-Type ::= (Type) IDENT
+Type ::= (TypeClass) IDENT
     ;
 
-StatementList ::= (StatementList) StatementList Statement
+StatementList ::= (StatementListClass) StatementList Statement
     | (NoStatementList)
     ;
 
@@ -177,10 +178,12 @@ Statement ::= (StatementDesignator) DesignatorStatement SEMI
     | (StatementRead) READ LPAREN Designator RPAREN SEMI
     | (StatementPrint) PRINT LPAREN Expr ConstNumList RPAREN SEMI
     | (StatementForEach) Designator PERIOD FOREACH LPAREN IDENT ARROW Statement RPAREN SEMI
-    | (StatementScoped) LBRACE Statement RBRACE
+    | (StatementScoped) LBRACE StatementList RBRACE
+    | error SEMI:l
+    {: parser.report_error("Badly formed statement on line " + lleft, null); :}
     ;
 
-ConstNumList ::= (ConstNumList) ConstNumList COMMA NUM_CONST
+ConstNumList ::= (ConstNumListClass) ConstNumList COMMA NUM_CONST
     | (NoConstNumList)
     ;
 
@@ -188,47 +191,47 @@ DesignatorStatement ::= (DesignatorAssign) Designator Assignop Expr
     | (DesignatorActParsOpt) Designator LPAREN ActParsOpt RPAREN
     | (DesignatorInc) Designator INCREMENT
     | (DesignatorDec) Designator DECREMENT
-    | (DesignatorAssign) LBRACKET Designator DesignatorList RBRACKET ASSIGN Designator
+    | (DesignatorAssignList) LBRACKET Designator DesignatorList RBRACKET ASSIGN Designator
     | (DesignatorAssignSkipFirst) LBRACKET DesignatorList RBRACKET ASSIGN Designator
     ;
 
 DesignatorList ::= (DesignatorListComma) DesignatorList COMMA
-    | (DesignatorList) DesignatorList COMMA Designator
+    | (DesignatorListClass) DesignatorList COMMA Designator
     | (NoDesignatorList)
     ;
 
-ActPars ::= (ActPars) ActPars COMMA Expr
+ActPars ::= (ActParsClass) ActPars COMMA Expr
     | (ActParsExpr) Expr
     ;
 
-ActParsOpt ::= (ActParsOpt) ActPars
+ActParsOpt ::= (ActParsOptClass) ActPars
     | (NoActParsOpt)
     ;
 
-Condition ::= (Condition) Condition OR CondTerm
+Condition ::= (ConditionClass) Condition OR CondTerm
     | (ConditionCondTerm) CondTerm
     ;
 
-CondTerm ::= (CondTerm) CondTerm AND CondFact
+CondTerm ::= (CondTermClass) CondTerm AND CondFact
     | (CondTermFact) CondFact
     ;
 
-CondFact ::= (CondFact) Expr
+CondFact ::= (CondFactClass) Expr
     | (CondFactRelop) Expr Relop Expr
     ;
 
-Expr ::= (Expr) Term AddopTermList
+Expr ::= (ExprClass) Term AddopTermList
     | (ExprNeg) MINUS Term AddopTermList
     ;
 
-AddopTermList ::= (AddopTermList) AddopTermList Addop Term
+AddopTermList ::= (AddopTermListClass) AddopTermList Addop Term
     | (NoAddopTermList)
     ;
 
-Term ::= (Term) Factor MulopFactorList
+Term ::= (TermClass) Factor MulopFactorList
     ;
 
-MulopFactorList ::= (MulopFactorList) MulopFactorList Mulop Factor
+MulopFactorList ::= (MulopFactorListClass) MulopFactorList Mulop Factor
     | (NoMulopFactorList)
     ;
 
@@ -238,20 +241,20 @@ Factor ::= (FactorDesignator) Designator
     | (FactorCharConst) CHAR_CONST
     | (FactorBoolConst) BOOL_CONST
     | (FactorNew) NEW Type
-    | (FactorNewArray) NEW Type LBRACKET Expr RPAREN
+    | (FactorNewArray) NEW Type LBRACKET Expr RBRACKET
     | (FactorNewActParsOpt) NEW Type LPAREN ActParsOpt RPAREN
     | (FactorExpr) LPAREN Expr RPAREN
     ;
 
-Designator ::= (DesignatorSingle) IDENT
+Designator ::= (DesignatorClass) IDENT
     | (DesignatorDot) Designator PERIOD IDENT
     | (DesignatorIndex) Designator LBRACKET Expr RBRACKET
     ;
 
-Label ::= (Label) IDENT
+Label ::= (LabelClass) IDENT
     ;
 
-Assignop ::= (Assignop) ASSIGN
+Assignop ::= (AssignopClass) ASSIGN
     ;
 
 Relop ::= (RelopEqual) EQUAL

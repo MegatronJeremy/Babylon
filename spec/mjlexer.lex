@@ -1,4 +1,4 @@
-package mjlexer;
+package mjparser;
 
 import java_cup.runtime.Symbol;
 
