@@ -69,11 +69,12 @@ nonterminal Program;
 nonterminal NamespaceDeclList, NamespaceDecl;
 nonterminal DeclList, Decl;
 nonterminal ConstDecl, ConstList, ConstType;
-nonterminal VarDeclList, VarDecl, VarList, VarType;
+nonterminal VarDeclList, VarDecl, VarList, VarName;
 nonterminal ClassDecl, ExtendsClause, ClassBody;
 nonterminal StaticVarDeclList, StaticInitList, StaticInitializer, MethodDeclBody;
+nonterminal ClassVarDeclListOpt, ClassVarDeclList;
 nonterminal MethodDeclList, MethodDecl, MethodType;
-nonterminal FormParsOpt, FormPars, FormList;
+nonterminal FormParsOpt, FormParsList;
 nonterminal Type;
 nonterminal StatementList, Statement, ElseStatement;
 nonterminal StatementForDesignStmtListOpt, StatementReturnExpr, StatementPrintNumConst, StatementForDesignStmtList;
@@ -121,21 +122,37 @@ VarDeclList ::= (VarDeclListClass) VarDeclList VarDecl
     | (NoVarDeclList)
     ;
 
-VarDecl ::= (VarDeclClass) Type VarType VarList SEMI
+VarDecl ::= (VarDeclClass) VarList SEMI
+    | (VerDeclError) error SEMI:l
+    {: parser.report_error("Badly formed variable declaration on line " + lleft, null); :}
     ;
 
-VarList ::= (VarListClass) VarList COMMA VarType
-    | (NoVarList)
+VarList ::= (VarListClass) VarList COMMA VarName
+    | (NoVarList) Type VarName
+    | (VarListCommaError) error COMMA:l
+    {: parser.report_error("Badly formed variable declaration on line " + lleft, null); :}
+      VarName
     ;
 
-VarType ::= (VarScalar) IDENT
+VarName ::= (VarScalar) IDENT
     | (VarArray) IDENT LBRACKET RBRACKET
     ;
 
 ClassDecl ::= (ClassDeclList) CLASS IDENT ExtendsClause LBRACE ClassBody RBRACE
     ;
 
-ClassBody ::= (ClassBodyClass) StaticVarDeclList StaticInitList VarDeclList MethodDeclBody
+ClassBody ::= (ClassBodyClass) StaticVarDeclList StaticInitList ClassVarDeclListOpt MethodDeclBody
+    | (ClassVarDeclError) StaticVarDeclList StaticInitList error LBRACE:l 
+      {: parser.report_error("Badly formed class variable declaration up to line " + lleft, null); :}  
+      MethodDeclBody RBRACE
+    ;
+
+ClassVarDeclListOpt ::= (HasClassVarDeclList) ClassVarDeclList
+    | (NoClassVarDeclList)
+    ;
+
+ClassVarDeclList ::= (ClassVarDeclListClass) ClassVarDeclList VarDecl
+    | (ClassVarDeclSingle) VarDecl
     ;
 
 StaticVarDeclList ::= (StaticVarDeclListClass) StaticVarDeclList STATIC VarDecl
@@ -155,6 +172,8 @@ MethodDeclBody ::= (MethodDeclBodyClass) LBRACE MethodDeclList RBRACE
 
 ExtendsClause ::= (ExtendsClauseClass) EXTENDS Type
     | (NoExtendsClause)
+    | (ExtendsClauseError) error:l 
+    {: parser.report_error("Badly formed extends clause on line " + lleft, null); :}
     ;
 
 MethodDeclList ::= (MethodDeclListClass) MethodDeclList MethodDecl
@@ -168,15 +187,17 @@ MethodType ::= (MethodTypeClass) Type
     | (MethodVoid) VOID
     ;
 
-FormParsOpt ::= (FormParsOptClass) FormPars
+FormParsOpt ::= (FormParsOptClass) FormParsList
     | (NoFormParsOpt)
+    | (FormParsError) error:l
+    {: parser.report_error("Badly formed formal parameter declaration on line " + lleft, null); :}
     ;
 
-FormPars ::= (FormParsClass) Type VarType FormList
-    ;
-
-FormList ::= (FormListClass) FormList COMMA Type VarType
-    | (NoFormList)
+FormParsList ::= (FormParsListClass) FormParsList COMMA Type VarName
+    | (FormParsListSingle) Type VarName
+    | (FormParsListError) error COMMA:l
+    {: parser.report_error("Badly formed formal parameter declaration on line " + lleft, null); :}
+      Type VarName
     ;
 
 Type ::= (TypeNamespace) IDENT COLON COLON IDENT
@@ -196,8 +217,8 @@ Statement ::= (StatementDesignator) DesignatorStatement SEMI
     | (StatementPrint) PRINT LPAREN Expr StatementPrintNumConst RPAREN SEMI
     | (StatementFor) FOR LPAREN StatementForDesignStmtListOpt SEMI CondFactOpt SEMI StatementForDesignStmtListOpt RPAREN Statement
     | (StatementScoped) LBRACE StatementList RBRACE
-    | error SEMI:l
-    {: parser.report_error("Badly formed statement on line " + lleft, null); :}
+    | (DesignatorStatementError) error SEMI:l
+    {: parser.report_error("Badly formed designator statement on line " + lleft, null); :}
     ;
 
 ElseStatement ::= (ElseStatementClass) ELSE Statement
@@ -248,6 +269,8 @@ ActParsOpt ::= (ActParsOptClass) ActPars
 
 Condition ::= (ConditionClass) Condition OR CondTerm
     | (ConditionCondTerm) CondTerm
+    | (ConditionError) error:l
+    {: parser.report_error("Badly formed if condition on line " + lleft, null); :}
     ;
 
 CondTerm ::= (CondTermClass) CondTerm AND CondFact
