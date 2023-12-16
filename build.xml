@@ -8,6 +8,8 @@
     <property name="mjparser.dir" location="src/mjparser"/>
     <property name="spec.dir" location="spec"/>
     <property name="ast.dir" location="src/ast"/>
+    <property name="logs.dir" location="logs"/>
+    <property name="out.idea.dir" location="out"/>
 
     <path id="build-classpath">
         <fileset dir="${libs.dir}">
@@ -22,6 +24,11 @@
         <delete file="${spec.dir}/mjparser_astbuild.cup"/>
         <delete dir="${ast.dir}"/>
         <delete dir="${build.dir}"/>
+        <delete dir="${out.idea.dir}"/>
+    </target>
+
+    <target name="clean-logs">
+        <delete dir="${logs.dir}"/>
     </target>
 
     <target name="makeDir">
@@ -55,7 +62,8 @@
     <target name="regenCode" depends="clean, makeDir, lexerGen, parserGen"/>
 
     <target name="compile" depends="regenCode">
-        <javac srcdir="${src.dir}" destdir="${build.classes.dir}" includeantruntime="false" debug="true">
+        <javac srcdir="${src.dir}" destdir="${build.classes.dir}" includeantruntime="false" debug="true"
+               failonerror="true">
             <classpath refid="build-classpath"/>
         </javac>
     </target>
@@ -70,6 +78,7 @@
         </jar>
     </target>
 
+    <property name="testFile" value="tests/test301.mj"/>
     <property name="testFilePath" value="${testFile}"/>
 
     <target name="run">
