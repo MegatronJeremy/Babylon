@@ -50,7 +50,10 @@ scan with {:
 	return s;
 :}
 
-terminal PROGRAM, BREAK, CLASS, ELSE, CONST, IF, WHILE, NEW, PRINT, READ, RETURN, VOID, EXTENDS, CONTINUE, FOREACH;
+terminal PROGRAM, BREAK, CLASS;
+terminal ELSE, CONST, IF, NEW; 
+terminal PRINT, READ; 
+terminal RETURN, VOID, EXTENDS, CONTINUE, FOR, STATIC, NAMESPACE;
 
 terminal String IDENT;
 terminal Integer NUM_CONST;
@@ -60,30 +63,42 @@ terminal Boolean BOOL_CONST;
 terminal PLUS, MINUS, MULTIPLY, DIVIDE, MODULO, ASSIGN;
 terminal EQUAL, NOT_EQUAL, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL, AND;
 terminal OR, INCREMENT, DECREMENT, SEMI, COLON, COMMA, PERIOD;
-terminal LPAREN, RPAREN, LBRACKET, RBRACKET, LBRACE, RBRACE, ARROW;
+terminal LPAREN, RPAREN, LBRACKET, RBRACKET, LBRACE, RBRACE;
 
 nonterminal Program;
+nonterminal NamespaceDeclList, NamespaceDecl;
 nonterminal DeclList, Decl;
 nonterminal ConstDecl, ConstList, ConstType;
 nonterminal VarDeclList, VarDecl, VarList, VarType;
-nonterminal ClassDecl, ExtendsClause, ClassBody, OperationDeclBody;
-nonterminal ConstructorOrMethodDeclList, ConstructorOrMethodDecl;
+nonterminal ClassDecl, ExtendsClause, ClassBody;
+nonterminal StaticVarDeclList, StaticInitList, StaticInitializer, MethodDeclBody;
 nonterminal MethodDeclList, MethodDecl, MethodType;
 nonterminal FormParsOpt, FormPars, FormList;
 nonterminal Type;
-nonterminal StatementList, Statement, ConstNumList;
-nonterminal DesignatorStatement, DesignatorList;
+nonterminal StatementList, Statement, ElseStatement;
+nonterminal StatementForDesignStmtListOpt, StatementReturnExpr, StatementPrintNumConst, StatementForDesignStmtList;
+nonterminal DesignatorStatement, DesignatorOperation, DesignatorAssignList, DesignatorOpt;
 nonterminal ActPars, ActParsOpt;
-nonterminal Condition, CondTerm, CondFact, Expr, AddopTermList, Term, MulopFactorList, Factor;
-nonterminal Designator, Label, Assignop, Relop, Addop, Mulop;
+nonterminal Condition, CondTerm, CondFact, CondFactOpt;
+nonterminal Expr, AddopTermList, Term, MulopFactorList, Factor;
+nonterminal Designator, DesignatorIndOpList, DesignatorIndOp;
+nonterminal Label, Assignop, Relop, Addop, Mulop;
 
 precedence left ELSE; 
 
-Program ::= (ProgramClass) PROGRAM IDENT DeclList LBRACE MethodDeclList RBRACE
+Program ::= (ProgramClass) PROGRAM IDENT NamespaceDeclList DeclList LBRACE MethodDeclList RBRACE
+    ;
+
+NamespaceDeclList ::= (NamespaceDeclListClass) NamespaceDeclList NamespaceDecl
+    | (NoNamespaceDeclList)
+    ; 
+
+NamespaceDecl ::= (NamespaceDeclClass) NAMESPACE IDENT LBRACE DeclList LBRACE MethodDeclList RBRACE RBRACE
     ;
 
 DeclList ::= (DeclListClass) DeclList Decl
-    | (NoDecl);
+    | (NoDecl)
+    ;
 
 Decl ::= (DeclConst) ConstDecl
     | (DeclVar) VarDecl
@@ -120,22 +135,26 @@ VarType ::= (VarScalar) IDENT
 ClassDecl ::= (ClassDeclList) CLASS IDENT ExtendsClause LBRACE ClassBody RBRACE
     ;
 
-ClassBody ::= (ClassBodyClass) VarDeclList LBRACE OperationDeclBody RBRACE
+ClassBody ::= (ClassBodyClass) StaticVarDeclList StaticInitList VarDeclList MethodDeclBody
     ;
 
-OperationDeclBody ::= (OperationDeclBodyClass) ConstructorOrMethodDeclList
+StaticVarDeclList ::= (StaticVarDeclListClass) StaticVarDeclList STATIC VarDecl
+    | (NoStaticVarDeclList)
     ;
 
-ExtendsClause ::= (ExtendsClauseClass) EXTENDS
+StaticInitList ::= (StaticInitListClass) StaticInitializer StaticInitList 
+    | (NoStaticInitList)
+    ;
+
+StaticInitializer ::= (StaticInitializerClass) STATIC LBRACE StatementList RBRACE
+    ;
+
+MethodDeclBody ::= (MethodDeclBodyClass) LBRACE MethodDeclList RBRACE
+    | (NoMethodDeclBody)
+    ;
+
+ExtendsClause ::= (ExtendsClauseClass) EXTENDS Type
     | (NoExtendsClause)
-    ;
-
-ConstructorOrMethodDeclList ::= (ConstructorOrMethodDeclListClass) ConstructorOrMethodDeclList ConstructorOrMethodDecl
-    | (NoConstructorOrMethodDeclList)
-    ;
-
-ConstructorOrMethodDecl ::= (ConstructorOptDecl) IDENT LPAREN FormParsOpt RPAREN VarDeclList LBRACE StatementList RBRACE
-    | (MethodOptDecl) MethodDecl
     ;
 
 MethodDeclList ::= (MethodDeclListClass) MethodDeclList MethodDecl
@@ -160,7 +179,8 @@ FormList ::= (FormListClass) FormList COMMA Type VarType
     | (NoFormList)
     ;
 
-Type ::= (TypeClass) IDENT
+Type ::= (TypeNamespace) IDENT COLON COLON IDENT
+    | (TypeNoNamespace) IDENT
     ;
 
 StatementList ::= (StatementListClass) StatementList Statement
@@ -168,36 +188,54 @@ StatementList ::= (StatementListClass) StatementList Statement
     ;
 
 Statement ::= (StatementDesignator) DesignatorStatement SEMI
-    | (StatementIf) IF LPAREN Condition RPAREN Statement
-    | (StatementIfElse) IF LPAREN Condition RPAREN Statement ELSE Statement
-    | (StatementWhile) WHILE LPAREN Condition RPAREN Statement
+    | (StatementIfElse) IF LPAREN Condition RPAREN Statement ElseStatement
     | (StatementBreak) BREAK SEMI
     | (StatementContinue) CONTINUE SEMI
-    | (StatementReturn) RETURN SEMI
-    | (StatementReturnExpr) RETURN Expr SEMI
+    | (StatementReturn) RETURN StatementReturnExpr SEMI
     | (StatementRead) READ LPAREN Designator RPAREN SEMI
-    | (StatementPrint) PRINT LPAREN Expr ConstNumList RPAREN SEMI
-    | (StatementForEach) Designator PERIOD FOREACH LPAREN IDENT ARROW Statement RPAREN SEMI
+    | (StatementPrint) PRINT LPAREN Expr StatementPrintNumConst RPAREN SEMI
+    | (StatementFor) FOR LPAREN StatementForDesignStmtListOpt SEMI CondFactOpt SEMI StatementForDesignStmtListOpt RPAREN Statement
     | (StatementScoped) LBRACE StatementList RBRACE
     | error SEMI:l
     {: parser.report_error("Badly formed statement on line " + lleft, null); :}
     ;
 
-ConstNumList ::= (ConstNumListClass) ConstNumList COMMA NUM_CONST
-    | (NoConstNumList)
+ElseStatement ::= (ElseStatementClass) ELSE Statement
+    | (NoElseStatement)
     ;
 
-DesignatorStatement ::= (DesignatorAssign) Designator Assignop Expr
-    | (DesignatorActParsOpt) Designator LPAREN ActParsOpt RPAREN
-    | (DesignatorInc) Designator INCREMENT
-    | (DesignatorDec) Designator DECREMENT
-    | (DesignatorAssignList) LBRACKET Designator DesignatorList RBRACKET ASSIGN Designator
-    | (DesignatorAssignSkipFirst) LBRACKET DesignatorList RBRACKET ASSIGN Designator
+StatementReturnExpr ::= (StatementReturnExprClass) Expr
+    | (NoStatementReturnExpr)
     ;
 
-DesignatorList ::= (DesignatorListComma) DesignatorList COMMA
-    | (DesignatorListClass) DesignatorList COMMA Designator
-    | (NoDesignatorList)
+StatementPrintNumConst ::= (StatementPrintNumConstClass) COMMA NUM_CONST
+    | (NoStatementPrintNumConst)
+    ;
+
+StatementForDesignStmtListOpt ::= (StatementForDesignStmtListOptClass) StatementForDesignStmtList
+    | (NoStatementForDesignStmtListOpt)
+    ;
+
+StatementForDesignStmtList ::= (StatementForDesignStmtListComma) StatementForDesignStmtList COMMA DesignatorStatement
+    | (SingleStatementForDesignStmtList) DesignatorStatement
+    ;
+
+DesignatorStatement ::= (DesignatorOpStmt) Designator DesignatorOperation
+    | (DesignatorAssignListStmt) LBRACKET DesignatorAssignList MULTIPLY Designator RBRACKET ASSIGN Designator
+    ;
+
+DesignatorOperation ::= (DesignatorOperationAssign) Assignop Expr
+    | (DesignatorOperationCall) LPAREN ActParsOpt RPAREN
+    | (DesignatorOperationIncrement) INCREMENT
+    | (DesignatorOperationDecrement) DECREMENT
+    ;
+
+DesignatorAssignList ::= (DesignatorAssignListComma) DesignatorAssignList DesignatorOpt COMMA
+    | (NoDesignatorAssignList)
+    ;
+
+DesignatorOpt ::= (DesignatorOptClass) Designator
+    | (NoDesignatorOpt)
     ;
 
 ActPars ::= (ActParsClass) ActPars COMMA Expr
@@ -218,6 +256,10 @@ CondTerm ::= (CondTermClass) CondTerm AND CondFact
 
 CondFact ::= (CondFactClass) Expr
     | (CondFactRelop) Expr Relop Expr
+    ;
+
+CondFactOpt ::= (CondFactOptClass) CondFact
+    | (NoCondFactOpt)
     ;
 
 Expr ::= (ExprClass) Term AddopTermList
@@ -246,9 +288,16 @@ Factor ::= (FactorDesignator) Designator
     | (FactorExpr) LPAREN Expr RPAREN
     ;
 
-Designator ::= (DesignatorClass) IDENT
-    | (DesignatorDot) Designator PERIOD IDENT
-    | (DesignatorIndex) Designator LBRACKET Expr RBRACKET
+Designator ::= (DesignatorNamespace) IDENT COLON COLON IDENT DesignatorIndOpList
+    | (DesignatorNoNamespace) IDENT DesignatorIndOpList
+    ;
+
+DesignatorIndOpList ::= (DesignatorIndOpListClass) DesignatorIndOpList DesignatorIndOp
+    | (NoDesignatorIndOpList)
+    ;
+
+DesignatorIndOp ::= (DesignatorIndOpDot) PERIOD IDENT
+    | (DesignatorIndOpBracket) LBRACKET Expr RBRACKET
     ;
 
 Label ::= (LabelClass) IDENT

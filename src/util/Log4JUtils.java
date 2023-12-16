@@ -8,8 +8,11 @@ import java.io.File;
 import java.net.URL;
 
 public class Log4JUtils {
-
     private static final Log4JUtils logs = new Log4JUtils();
+
+    static {
+        System.setProperty("logFileName", "mj-" + System.currentTimeMillis() + "-test");
+    }
 
     public static Log4JUtils instance() {
         return logs;
@@ -26,18 +29,11 @@ public class Log4JUtils {
             return;
         FileAppender fAppender = (FileAppender) appender;
 
-        String fileNameStripped = fAppender.getFile();
-        fileNameStripped = fileNameStripped.substring(0, fileNameStripped.lastIndexOf('.'));
-
-        String logFileName = fileNameStripped + "-test.log";
+        String fileName = fAppender.getFile();
+        String fileNameStripped = fileName.substring(0, fileName.lastIndexOf('.'));
+        String logFileName = fileNameStripped + System.currentTimeMillis() + "-test.log"; // Dynamic log file name with timestamp
 
         File logFile = new File(logFileName);
-        File renamedFile = new File(fileNameStripped + "-test." + System.currentTimeMillis() + ".log");
-
-        if (logFile.exists()) {
-            if (!logFile.renameTo(renamedFile))
-                System.err.println("Could not rename log file!");
-        }
 
         fAppender.setFile(logFile.getAbsolutePath());
         fAppender.activateOptions();

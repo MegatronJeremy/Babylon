@@ -1,0 +1,8 @@
+program misc
+
+{
+ void main()
+ {
+ print(ProstiBrojevi.prosti[9] == 29);
+ }
+}

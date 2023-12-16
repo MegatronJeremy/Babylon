@@ -13,7 +13,6 @@ public class MJParserTest {
 
     static {
         DOMConfigurator.configure(Log4JUtils.instance().findLoggerConfigFile());
-        Log4JUtils.instance().prepareLogFile(Logger.getRootLogger());
     }
 
     public static void main(String[] args) throws Exception {
@@ -21,7 +20,7 @@ public class MJParserTest {
 
         Reader br = null;
         try {
-            File sourceCode = new File("test/program.mj");
+            File sourceCode = new File(args[0]);
             log.info("Compiling source file: " + sourceCode.getAbsolutePath());
 
             br = new BufferedReader(new FileReader(sourceCode));
@@ -66,6 +65,4 @@ public class MJParserTest {
         }
 
     }
-
-
 }

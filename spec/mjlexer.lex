@@ -41,7 +41,6 @@ import java_cup.runtime.Symbol;
 "else"      { return NewSymbol(sym.ELSE, yytext()); }
 "const"     { return NewSymbol(sym.CONST, yytext()); }
 "if"        { return NewSymbol(sym.IF, yytext()); }
-"while"     { return NewSymbol(sym.WHILE, yytext()); }
 "new"       { return NewSymbol(sym.NEW, yytext()); }
 "print"     { return NewSymbol(sym.PRINT, yytext()); }
 "read"      { return NewSymbol(sym.READ, yytext()); }
@@ -49,7 +48,9 @@ import java_cup.runtime.Symbol;
 "void"      { return NewSymbol(sym.VOID, yytext()); }
 "extends"   { return NewSymbol(sym.EXTENDS, yytext()); }
 "continue"  { return NewSymbol(sym.CONTINUE, yytext()); }
-"foreach"   { return NewSymbol(sym.FOREACH, yytext()); }
+"for"       { return NewSymbol(sym.FOR, yytext()); }
+"static"    { return NewSymbol(sym.STATIC, yytext()); }
+"namespace" { return NewSymbol(sym.NAMESPACE, yytext()); }
 
 // For numeric constants
 [0-9]+ { return NewSymbol(sym.NUM_CONST, Integer.parseInt(yytext())); }
@@ -61,17 +62,10 @@ import java_cup.runtime.Symbol;
 // For identifiers
 [a-zA-Z][a-zA-Z0-9_]* { return NewSymbol(sym.IDENT, yytext()); }
 
-// For character constants
-"'"[^'\r\n]*"'" {
-    if (yytext().length() == 3) {
-        String value = yytext().substring(1, 2);
+// For character constants (only include printable characters)
+"'"[ -~]"'" {
+    Character value = yytext().substring(1, 2).charAt(0);
         return NewSymbol(sym.CHAR_CONST, value);
-    } else {
-        // TODO
-        // Handle an error here since the character constant should contain only one character.
-        // You can throw an exception or return an error token.
-        System.err.println("Lexical error ("+yytext()+") in line "+(yyline+1));
-    }
 }
 
 // Generators for operators, e.g., "+", "-", "*", "/", etc.
@@ -101,7 +95,6 @@ import java_cup.runtime.Symbol;
 "]"     { return NewSymbol(sym.RBRACKET, yytext()); }
 "{"     { return NewSymbol(sym.LBRACE, yytext()); }
 "}"     { return NewSymbol(sym.RBRACE, yytext()); }
-"=>"    { return NewSymbol(sym.ARROW, yytext()); }
 
 // Ignore comments
 "//"    { yybegin(COMMENT); }

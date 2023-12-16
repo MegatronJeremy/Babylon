@@ -34,3 +34,4 @@ spec/mjparser_astbuild.cup
 
 ### Mac OS ###
 .DS_Store
+/logs/
