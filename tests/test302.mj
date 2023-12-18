@@ -87,7 +87,7 @@ int a, curr;
 		read(niz[1]);
 		read(niz[2]);
 		print(eol);
-		print(Addition::sum(Addition::sum(niz[0], niz[1]), niz[2])); 
+		print(Addition::sum(Addition::sum(niz[0], niz[1]), niz[2]));
 			
 		print(eol); 
 		print(Addition::inkrement(niz[2], 2));

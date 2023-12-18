@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="Babylon" default="run" basedir=".">
+<project name="Babylon" default="jar" basedir=".">
     <property name="src.dir" location="src"/>
     <property name="libs.dir" location="lib"/>
     <property name="build.dir" location="build"/>

@@ -6,8 +6,8 @@ namespace Konstante{
 	const int nula = 0;
 	const int jedan = 1;
 	const int pet = 5;
-
-    {}
+	
+	{}
 }
 
 namespace Nizovi{
@@ -39,7 +39,6 @@ namespace Nizovi{
 		print(bodovi);
 		print(Nizovi::niz[2]);
 			
-		
 		Nizovi::nizch = new char[3];
 		Nizovi::nizch[0] = 'a';
 		Nizovi::nizch[Konstante::jedan] = 'b';
@@ -49,7 +48,7 @@ namespace Nizovi{
 			
 		a=1;
 		read(bodovi);
-		bodovi = -bodovi + (Konstante::pet * a / 2 - Konstante::jedan) * bodovi - (3 % 2 + 3 * 2 - 3); 
+		bodovi = -bodovi + (Konstante::pet * a / 2 - Konstante::jedan) * bodovi - (3 % 2 + 3 * 2 - 3);
 		print(bodovi);
 			
 	}

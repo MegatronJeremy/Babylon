@@ -66,148 +66,201 @@ terminal OR, INCREMENT, DECREMENT, SEMI, COLON, COMMA, PERIOD;
 terminal LPAREN, RPAREN, LBRACKET, RBRACKET, LBRACE, RBRACE;
 
 nonterminal Program;
+nonterminal rs.etf.pp1.symboltable.concepts.Obj ProgName;
+
 nonterminal NamespaceDeclList, NamespaceDecl;
+nonterminal java.lang.String NamespaceName;
+
 nonterminal DeclList, Decl;
-nonterminal ConstDecl, ConstList, ConstType;
-nonterminal VarDeclList, VarDecl, VarList, VarName;
+
+nonterminal ConstDecl;
+nonterminal rs.etf.pp1.symboltable.concepts.Obj ConstType;
+nonterminal semantics.util.ObjList ConstList;
+
+nonterminal VarDeclList, VarDecl;
+nonterminal semantics.util.ObjList VarList;
+nonterminal rs.etf.pp1.symboltable.concepts.Obj VarName;
+
 nonterminal ClassDecl, ExtendsClause, ClassBody;
 nonterminal StaticVarDeclList, StaticInitList, StaticInitializer, MethodDeclBody;
 nonterminal ClassVarDeclListOpt, ClassVarDeclList;
-nonterminal MethodDeclList, MethodDecl, MethodType;
+
+nonterminal MethodDeclList, MethodDecl, MethodTypeName;
 nonterminal FormParsOpt, FormParsList;
-nonterminal Type;
-nonterminal StatementList, Statement, ElseStatement;
-nonterminal StatementForDesignStmtListOpt, StatementReturnExpr, StatementPrintNumConst, StatementForDesignStmtList;
-nonterminal DesignatorStatement, DesignatorOperation, DesignatorAssignList, DesignatorOpt;
-nonterminal ActPars, ActParsOpt;
+
+nonterminal rs.etf.pp1.symboltable.concepts.Struct Type, MethodType;
+
+nonterminal StatementList, Statement, StatementScopedOpen, ElseStatement;
+nonterminal ForDesignStmtListOpt, StatementReturnExpr, StatementPrintNumConst, ForDesignStmtList;
+
+nonterminal DesignatorStatement, DesignatorAssignList, DesignatorOpt;
+nonterminal rs.etf.pp1.symboltable.concepts.Obj Designator, DesignatorName, DesignatorOpCall;
+nonterminal DesignatorOperation;
+
+nonterminal semantics.util.StructList ActPars, ActParsOpt;
 nonterminal Condition, CondTerm, CondFact, CondFactOpt;
-nonterminal Expr, AddopTermList, Term, MulopFactorList, Factor;
-nonterminal Designator, DesignatorIndOpList, DesignatorIndOp;
-nonterminal Label, Assignop, Relop, Addop, Mulop;
+
+nonterminal rs.etf.pp1.symboltable.concepts.Struct Expr, Term, Factor;
+
+nonterminal Label, Assignop, Addop, Mulop;
+nonterminal java.lang.String Relop;
 
 precedence left ELSE; 
 
-Program ::= (ProgramClass) PROGRAM IDENT NamespaceDeclList DeclList LBRACE MethodDeclList RBRACE
+// Need to check if main exists and has correct namespace and return value
+Program ::= (Program) PROGRAM ProgName:p NamespaceDeclList DeclList LBRACE MethodDeclList RBRACE
     ;
 
-NamespaceDeclList ::= (NamespaceDeclListClass) NamespaceDeclList NamespaceDecl
-    | (NoNamespaceDeclList)
+// Open program scope 
+ProgName ::= (ProgName) IDENT:progName
+    ;
+
+// Do nothing here
+NamespaceDeclList ::= (NamespaceDeclListExists) NamespaceDeclList NamespaceDecl
+    | (NamespaceDeclListEmpty)
     ; 
 
-NamespaceDecl ::= (NamespaceDeclClass) NAMESPACE IDENT LBRACE DeclList LBRACE MethodDeclList RBRACE RBRACE
+// Close namespace scope
+NamespaceDecl ::= (NamespaceDecl) NAMESPACE NamespaceName LBRACE DeclList LBRACE MethodDeclList RBRACE RBRACE
     ;
 
-DeclList ::= (DeclListClass) DeclList Decl
-    | (NoDecl)
+// Open namespace scope
+NamespaceName ::= (NamespaceName) IDENT:namespaceName
     ;
 
+// Do nothing here
+DeclList ::= (DeclListExists) DeclList Decl
+    | (DeclListEmpty)
+    ;
+
+// Do nothing here
 Decl ::= (DeclConst) ConstDecl
     | (DeclVar) VarDecl
     | (DeclClass) ClassDecl
     ;
 
-ConstDecl ::= (ConstDeclClass) CONST Type IDENT ASSIGN ConstType ConstList SEMI
+// Check types for all objects of ConstList
+ConstDecl ::= (ConstDecl) CONST Type ConstList SEMI
     ;
 
-ConstList ::= (ConstListClass) ConstList COMMA IDENT ASSIGN ConstType
-    | (NoConstList)
+// ConstListEmpty -> create empty list, ConstListExists -> add to list
+ConstList ::= (ConstListExists) ConstList COMMA ConstType
+    | (ConstListEmpty) ConstType
     ;
 
-ConstType ::= (ConstNum) NUM_CONST
-    | (ConstChar) CHAR_CONST
-    | (ConstBool) BOOL_CONST
+// Declare here with assigned type
+ConstType ::= (ConstNum) IDENT:varName ASSIGN NUM_CONST:numValue
+    | (ConstChar) IDENT:varName ASSIGN CHAR_CONST:charValue
+    | (ConstBool) IDENT:varName ASSIGN BOOL_CONST:boolValue
     ;
 
-VarDeclList ::= (VarDeclListClass) VarDeclList VarDecl
-    | (NoVarDeclList)
+// Do nothing here
+VarDeclList ::= (VarDeclListExists) VarDeclList VarDecl
+    | (VarDeclListEmpty)
     ;
 
-VarDecl ::= (VarDeclClass) VarList SEMI
+// Assign type to all variables in list
+VarDecl ::= (VarDeclCorrect) Type VarList SEMI
     | (VerDeclError) error SEMI:l
     {: parser.report_error("Badly formed variable declaration on line " + lleft, null); :}
     ;
 
-VarList ::= (VarListClass) VarList COMMA VarName
-    | (NoVarList) Type VarName
-    | (VarListCommaError) error COMMA:l
+// Add variables to list
+VarList ::= (VarListMultiple) VarList COMMA VarName
+    | (VarListSingle) VarName
+    | (VarListError) error COMMA:l
     {: parser.report_error("Badly formed variable declaration on line " + lleft, null); :}
       VarName
     ;
 
-VarName ::= (VarScalar) IDENT
-    | (VarArray) IDENT LBRACKET RBRACKET
+// Declare variable here and FIXUP TYPE LATER
+VarName ::= (VarScalar) IDENT:varName
+    | (VarArray) IDENT:varName LBRACKET RBRACKET
     ;
 
-ClassDecl ::= (ClassDeclList) CLASS IDENT ExtendsClause LBRACE ClassBody RBRACE
+// TODO classes
+ClassDecl ::= (ClassDecl) CLASS IDENT ExtendsClause LBRACE ClassBody RBRACE
     ;
 
-ClassBody ::= (ClassBodyClass) StaticVarDeclList StaticInitList ClassVarDeclListOpt MethodDeclBody
-    | (ClassVarDeclError) StaticVarDeclList StaticInitList error LBRACE:l 
+ClassBody ::= (ClassBodyCorrect) StaticVarDeclList StaticInitList ClassVarDeclListOpt MethodDeclBody
+    | (ClassBodyVarDeclError) StaticVarDeclList StaticInitList error LBRACE:l
       {: parser.report_error("Badly formed class variable declaration up to line " + lleft, null); :}  
       MethodDeclBody RBRACE
     ;
 
-ClassVarDeclListOpt ::= (HasClassVarDeclList) ClassVarDeclList
-    | (NoClassVarDeclList)
+MethodDeclBody ::= (MethodDeclBodyExists) LBRACE MethodDeclList RBRACE
+    | (MethodDeclBodyEmpty)
     ;
 
-ClassVarDeclList ::= (ClassVarDeclListClass) ClassVarDeclList VarDecl
+ClassVarDeclListOpt ::= (ClassVarDeclListExists) ClassVarDeclList
+    | (ClassVarDeclListEmpty)
+    ;
+
+ClassVarDeclList ::= (ClassVarDeclListMultiple) ClassVarDeclList VarDecl
     | (ClassVarDeclSingle) VarDecl
     ;
 
-StaticVarDeclList ::= (StaticVarDeclListClass) StaticVarDeclList STATIC VarDecl
-    | (NoStaticVarDeclList)
+StaticVarDeclList ::= (StaticVarDeclListExists) StaticVarDeclList STATIC VarDecl
+    | (StaticVarDeclListEmpty)
     ;
 
-StaticInitList ::= (StaticInitListClass) StaticInitializer StaticInitList 
-    | (NoStaticInitList)
+StaticInitList ::= (StaticInitListExists) StaticInitializer StaticInitList
+    | (StaticInitListEmpty)
     ;
 
-StaticInitializer ::= (StaticInitializerClass) STATIC LBRACE StatementList RBRACE
+StaticInitializer ::= (StaticInitializer) STATIC LBRACE StatementList RBRACE
     ;
 
-MethodDeclBody ::= (MethodDeclBodyClass) LBRACE MethodDeclList RBRACE
-    | (NoMethodDeclBody)
-    ;
-
-ExtendsClause ::= (ExtendsClauseClass) EXTENDS Type
-    | (NoExtendsClause)
+ExtendsClause ::= (ExtendsClauseExists) EXTENDS Type
+    | (ExtendsClauseEmpty)
     | (ExtendsClauseError) error:l 
     {: parser.report_error("Badly formed extends clause on line " + lleft, null); :}
     ;
 
-MethodDeclList ::= (MethodDeclListClass) MethodDeclList MethodDecl
-    | (NoMethodDeclList)
+// Do nothing here
+MethodDeclList ::= (MethodDeclListExists) MethodDeclList MethodDecl
+    | (MethodDeclListEmpty)
     ;
 
-MethodDecl ::= (MethodDeclClass) MethodType IDENT LPAREN FormParsOpt RPAREN VarDeclList LBRACE StatementList RBRACE
+// Close scope, link locals
+MethodDecl ::= (MethodDecl) MethodTypeName LPAREN FormParsOpt RPAREN VarDeclList LBRACE StatementList RBRACE
     ;
 
-MethodType ::= (MethodTypeClass) Type
-    | (MethodVoid) VOID
+// Open scope, declare method
+MethodTypeName ::= (MethodTypeName) MethodType IDENT:methodName
     ;
 
-FormParsOpt ::= (FormParsOptClass) FormParsList
-    | (NoFormParsOpt)
+// Take note of return type
+MethodType ::= (MethodTypeExists) Type
+    | (MethodTypeVoid) VOID
+    ;
+
+// Do nothing
+FormParsOpt ::= (FormParsExists) FormParsList
+    | (FormParsEmpty)
     | (FormParsError) error:l
     {: parser.report_error("Badly formed formal parameter declaration on line " + lleft, null); :}
     ;
 
-FormParsList ::= (FormParsListClass) FormParsList COMMA Type VarName
+// Take note of formal parameters and set inherited type
+FormParsList ::= (FormParsListMultiple) FormParsList COMMA Type VarName
     | (FormParsListSingle) Type VarName
     | (FormParsListError) error COMMA:l
     {: parser.report_error("Badly formed formal parameter declaration on line " + lleft, null); :}
       Type VarName
     ;
 
-Type ::= (TypeNamespace) IDENT COLON COLON IDENT
-    | (TypeNoNamespace) IDENT
+// Return variable type using name
+Type ::= (TypeNamespace) IDENT:typeNamespace COLON COLON IDENT:typeName
+    | (TypeNoNamespace) IDENT:typeName
     ;
 
-StatementList ::= (StatementListClass) StatementList Statement
-    | (NoStatementList)
+// Do nothing here
+StatementList ::= (StatementListExists) StatementList Statement
+    | (StatementListEmpty)
     ;
 
+// TODO do if/for constructs later
 Statement ::= (StatementDesignator) DesignatorStatement SEMI
     | (StatementIfElse) IF LPAREN Condition RPAREN Statement ElseStatement
     | (StatementBreak) BREAK SEMI
@@ -215,118 +268,136 @@ Statement ::= (StatementDesignator) DesignatorStatement SEMI
     | (StatementReturn) RETURN StatementReturnExpr SEMI
     | (StatementRead) READ LPAREN Designator RPAREN SEMI
     | (StatementPrint) PRINT LPAREN Expr StatementPrintNumConst RPAREN SEMI
-    | (StatementFor) FOR LPAREN StatementForDesignStmtListOpt SEMI CondFactOpt SEMI StatementForDesignStmtListOpt RPAREN Statement
-    | (StatementScoped) LBRACE StatementList RBRACE
-    | (DesignatorStatementError) error SEMI:l
+    | (StatementFor) FOR LPAREN ForDesignStmtListOpt SEMI CondFactOpt SEMI ForDesignStmtListOpt RPAREN Statement
+    | (StatementScoped) LBRACE StatementScopedOpen StatementList RBRACE
+    | (StatementError) error SEMI:l
     {: parser.report_error("Badly formed designator statement on line " + lleft, null); :}
     ;
 
-ElseStatement ::= (ElseStatementClass) ELSE Statement
-    | (NoElseStatement)
+ElseStatement ::= (ElseStatementExists) ELSE Statement
+    | (ElseStatementEmpty)
     ;
 
-StatementReturnExpr ::= (StatementReturnExprClass) Expr
-    | (NoStatementReturnExpr)
+StatementReturnExpr ::= (StatementReturnExprExists) Expr
+    | (StatementReturnExprEmpty)
     ;
 
-StatementPrintNumConst ::= (StatementPrintNumConstClass) COMMA NUM_CONST
-    | (NoStatementPrintNumConst)
+StatementPrintNumConst ::= (StatementPrintNumConstExists) COMMA NUM_CONST
+    | (StatementPrintNumConstEmpty)
     ;
 
-StatementForDesignStmtListOpt ::= (StatementForDesignStmtListOptClass) StatementForDesignStmtList
-    | (NoStatementForDesignStmtListOpt)
+ForDesignStmtListOpt ::= (ForDesignStmtListExists) ForDesignStmtList
+    | (ForDesignStmtListEmpty)
     ;
 
-StatementForDesignStmtList ::= (StatementForDesignStmtListComma) StatementForDesignStmtList COMMA DesignatorStatement
-    | (SingleStatementForDesignStmtList) DesignatorStatement
+ForDesignStmtList ::= (ForDesignStmtListMultiple) ForDesignStmtList COMMA DesignatorStatement
+    | (ForDesignStmtListSingle) DesignatorStatement
     ;
 
-DesignatorStatement ::= (DesignatorOpStmt) Designator DesignatorOperation
+// Open new scope, and close it in StatementScoped
+StatementScopedOpen ::= (StatementScopedOpen)
+    ;
+
+// For the other one TODO do the check here
+DesignatorStatement ::= (DesignatorOpStmt) DesignatorOperation
     | (DesignatorAssignListStmt) LBRACKET DesignatorAssignList MULTIPLY Designator RBRACKET ASSIGN Designator
     ;
 
-DesignatorOperation ::= (DesignatorOperationAssign) Assignop Expr
-    | (DesignatorOperationCall) LPAREN ActParsOpt RPAREN
-    | (DesignatorOperationIncrement) INCREMENT
-    | (DesignatorOperationDecrement) DECREMENT
+// TODO see what to do here
+DesignatorAssignList ::= (DesignatorAssignListExists) DesignatorAssignList DesignatorOpt COMMA
+    | (DesignatorAssignListEmpty)
     ;
 
-DesignatorAssignList ::= (DesignatorAssignListComma) DesignatorAssignList DesignatorOpt COMMA
-    | (NoDesignatorAssignList)
-    ;
-
+// TODO see if you need to do something here
 DesignatorOpt ::= (DesignatorOptClass) Designator
     | (NoDesignatorOpt)
     ;
 
-ActPars ::= (ActParsClass) ActPars COMMA Expr
-    | (ActParsExpr) Expr
+// DesignatorOpAssign - check if assignable
+// DesignatorOpCall - check if ActPars count matches and if Designator is a method
+// DesignatorOpIncrement/Decrement - check if Designator is int
+DesignatorOperation ::= (DesignatorOpAssign) Designator Assignop Expr
+    | (DesignatorFunction) DesignatorOpCall
+    | (DesignatorOpIncrement) Designator INCREMENT
+    | (DesignatorOpDecrement) Designator DECREMENT
     ;
 
-ActParsOpt ::= (ActParsOptClass) ActPars
-    | (NoActParsOpt)
+// Returns function object
+DesignatorOpCall ::= (DesignatorOpCall) Designator LPAREN ActParsOpt RPAREN
     ;
 
-Condition ::= (ConditionClass) Condition OR CondTerm
+// Do an indexing operation on the passed name
+// Check if the type is a class for the first one (TODO)
+// Check if the type is an array for the second one
+Designator ::= (DesignatorIndOpDot) Designator PERIOD IDENT
+    | (DesignatorIndOpBracket) Designator LBRACKET Expr RBRACKET
+    | (DesignatorNoInd) DesignatorName
+    ;
+
+// Return the object with correct namespace and name
+DesignatorName ::= (DesignatorNameNamespace) IDENT:designNamespace COLON COLON IDENT:designName
+    | (DesignatorNameNoNamespace) IDENT:designName
+    ;
+
+// Count number of ActPars
+ActPars ::= (ActParsMultiple) ActPars COMMA Expr
+    | (ActParsSingle) Expr
+    ;
+
+// Pass along integer
+ActParsOpt ::= (ActParsExists) ActPars
+    | (ActParsEmpty)
+    ;
+
+// Check nothing here
+Condition ::= (ConditionOR) Condition OR CondTerm
     | (ConditionCondTerm) CondTerm
     | (ConditionError) error:l
     {: parser.report_error("Badly formed if condition on line " + lleft, null); :}
     ;
 
-CondTerm ::= (CondTermClass) CondTerm AND CondFact
+// Check nothing here
+CondTerm ::= (CondTermAND) CondTerm AND CondFact
     | (CondTermFact) CondFact
     ;
 
-CondFact ::= (CondFactClass) Expr
+// Check if expression types compatible
+// Class or Array can only have != and ==
+CondFact ::= (CondFactSingle) Expr
     | (CondFactRelop) Expr Relop Expr
     ;
 
-CondFactOpt ::= (CondFactOptClass) CondFact
-    | (NoCondFactOpt)
+// TODO This is for For statement
+CondFactOpt ::= (CondFactExists) CondFact
+    | (CondFactEmpty)
     ;
 
-Expr ::= (ExprClass) Term AddopTermList
-    | (ExprNeg) MINUS Term AddopTermList
+// Minus - Term must be of type int
+// Addop - Expr and Term of type int and compatible
+Expr ::= (ExprAddop) Expr Addop Term
+    | (ExprPos) Term
+    | (ExprNeg) MINUS Term
     ;
 
-AddopTermList ::= (AddopTermListClass) AddopTermList Addop Term
-    | (NoAddopTermList)
-    ;
-
-Term ::= (TermClass) Factor MulopFactorList
-    ;
-
-MulopFactorList ::= (MulopFactorListClass) MulopFactorList Mulop Factor
-    | (NoMulopFactorList)
+// Term and factor must be of type int
+Term ::= (TermMulop) Term Mulop Factor
+    | (TermFactor) Factor
     ;
 
 Factor ::= (FactorDesignator) Designator
-    | (FactorDesignatorActParsOpt) Designator LPAREN ActParsOpt RPAREN
+    | (FactorFunctionCall) DesignatorOpCall
     | (FactorNumConst) NUM_CONST
     | (FactorCharConst) CHAR_CONST
     | (FactorBoolConst) BOOL_CONST
-    | (FactorNew) NEW Type
     | (FactorNewArray) NEW Type LBRACKET Expr RBRACKET
-    | (FactorNewActParsOpt) NEW Type LPAREN ActParsOpt RPAREN
+    | (FactorNewClass) NEW Type LPAREN ActParsOpt RPAREN    
     | (FactorExpr) LPAREN Expr RPAREN
     ;
 
-Designator ::= (DesignatorNamespace) IDENT COLON COLON IDENT DesignatorIndOpList
-    | (DesignatorNoNamespace) IDENT DesignatorIndOpList
+Label ::= (Label) IDENT
     ;
 
-DesignatorIndOpList ::= (DesignatorIndOpListClass) DesignatorIndOpList DesignatorIndOp
-    | (NoDesignatorIndOpList)
-    ;
-
-DesignatorIndOp ::= (DesignatorIndOpDot) PERIOD IDENT
-    | (DesignatorIndOpBracket) LBRACKET Expr RBRACKET
-    ;
-
-Label ::= (LabelClass) IDENT
-    ;
-
-Assignop ::= (AssignopClass) ASSIGN
+Assignop ::= (Assignop) ASSIGN
     ;
 
 Relop ::= (RelopEqual) EQUAL

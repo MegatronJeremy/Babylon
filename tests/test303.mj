@@ -101,7 +101,8 @@ int tezinaK, tezinaS;
 		
 	void main() Predmeti::Predmet predmeti[]; int i; Predmeti::Sfera s1, s2, s3; Predmeti::Kvadar k1, k2, k3; int t;
 	{
-		print(ProstiBrojevi.prosti[9] || 29);
+		if(ProstiBrojevi.prosti[9] == 29) print(1);
+		else print(0);
 		predmeti = new Predmeti::Predmet[6];
 		s1 = new Predmeti::Sfera();
 		s1.postaviPoluprecnik(1);

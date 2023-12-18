@@ -4,7 +4,8 @@ import ast.Program;
 import java_cup.runtime.Symbol;
 import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
-import rs.etf.pp1.symboltable.Tab;
+import semantics.TabExtended;
+import semantics.visitors.SemanticPass;
 import util.Log4JUtils;
 
 import java.io.*;
@@ -30,32 +31,24 @@ public class MJParserTest {
             Symbol s = p.parse();  //pocetak parsiranja
 
             Program program = (Program) (s.value);
-            Tab.init();
+            TabExtended.init();
             // ispis sintaksnog stabla
             log.info(program.toString(""));
             log.info("===================================");
 
             // ispis prepoznatih programskih konstrukcija
-            RuleVisitor v = new RuleVisitor();
+            SemanticPass v = new SemanticPass();
             program.traverseBottomUp(v);
 
-            log.info("Print count calls = " + v.printCallCount);
-
-            log.info("Var declaration count = " + v.varDeclCount);
-            /*
-            SemanticPass v = new SemanticPass();
-            prog.traverseBottomUp(v);
+            log.info("===================================");
+            TabExtended.dump();
 
             log.info("===================================");
-            Tab.dump();
-
-
             if (!p.errorDetected && v.passed()) {
-                log.info("Parsiranje uspesno zavrseno!");
+                log.info("Parsing and semantic analysis successful!");
             } else {
-                log.error("Parsiranje NIJE uspesno zavrseno!");
+                log.error("Parsing and semantic analysis was not successful!");
             }
-             */
         } finally {
             if (br != null) try {
                 br.close();
