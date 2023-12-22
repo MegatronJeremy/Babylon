@@ -21,15 +21,15 @@ public class ExprVisitor extends VisitorAdaptor {
         String relationOp = condFactRelop.getRelop().string;
 
         if (!lType.compatibleWith(rType)) {
-            LogUtils.logError("Error on line " +
-                    condFactRelop.getLine() + ": incompatible expression for types " +
-                    LogUtils.kindToString(lType.getKind())
-                    + " and " + LogUtils.kindToString(rType.getKind()));
+            LogUtils.logError("Incompatible expression for types "
+                            + LogUtils.kindToString(lType.getKind())
+                            + " and " + LogUtils.kindToString(rType.getKind()),
+                    condFactRelop);
         } else if ((lType.getKind() == Struct.Class || lType.getKind() == Struct.Array) &&
                 !Objects.equals(relationOp, "==") && !Objects.equals(relationOp, "!=")) {
-            LogUtils.logError("Error on line " +
-                    condFactRelop.getLine() + ": incompatible relation operator for type " +
-                    LogUtils.kindToString(lType.getKind()));
+            LogUtils.logError("Incompatible relation operator for type "
+                            + LogUtils.kindToString(lType.getKind()),
+                    condFactRelop);
         }
     }
 
@@ -38,10 +38,10 @@ public class ExprVisitor extends VisitorAdaptor {
         Struct rType = exprAddop.getTerm().struct;
 
         if (lType.getKind() != Struct.Int || !lType.compatibleWith(rType)) {
-            LogUtils.logError("Error on line " +
-                    exprAddop.getLine() + ": incompatible add expression for types " +
-                    LogUtils.kindToString(lType.getKind())
-                    + " and " + LogUtils.kindToString(rType.getKind()));
+            LogUtils.logError("Incompatible add expression for types "
+                            + LogUtils.kindToString(lType.getKind())
+                            + " and " + LogUtils.kindToString(rType.getKind()),
+                    exprAddop);
 
             exprAddop.struct = TabExtended.noType;
         } else {
@@ -56,9 +56,8 @@ public class ExprVisitor extends VisitorAdaptor {
     public void visit(ExprNeg exprNeg) {
         Struct type = exprNeg.getTerm().struct;
         if (type.getKind() != Struct.Int) {
-            LogUtils.logError("Error on line " +
-                    exprNeg.getLine() + ": incompatible negation for type " +
-                    LogUtils.kindToString(type.getKind()));
+            LogUtils.logError("Incompatible negation for type " + LogUtils.kindToString(type.getKind()),
+                    exprNeg);
 
             exprNeg.struct = TabExtended.noType;
         } else {
@@ -71,10 +70,10 @@ public class ExprVisitor extends VisitorAdaptor {
         Struct rType = termMulop.getFactor().struct;
 
         if (lType.getKind() != Struct.Int || !lType.compatibleWith(rType)) {
-            LogUtils.logError("Error on line " +
-                    termMulop.getLine() + ": incompatible mul expression for types " +
-                    LogUtils.kindToString(lType.getKind())
-                    + " and " + LogUtils.kindToString(rType.getKind()));
+            LogUtils.logError("Incompatible mul expression for types "
+                            + LogUtils.kindToString(lType.getKind())
+                            + " and " + LogUtils.kindToString(rType.getKind()),
+                    termMulop);
 
             termMulop.struct = TabExtended.noType;
         } else {
@@ -109,9 +108,9 @@ public class ExprVisitor extends VisitorAdaptor {
     public void visit(FactorNewArray factorNewArray) {
         Struct exprType = factorNewArray.getExpr().struct;
         if (exprType.getKind() != Struct.Int) {
-            LogUtils.logError("Error on line " +
-                    factorNewArray.getLine() + ": incompatible array indexing with type " +
-                    LogUtils.kindToString(exprType.getKind()));
+            LogUtils.logError("Incompatible array indexing with type "
+                            + LogUtils.kindToString(exprType.getKind()),
+                    factorNewArray);
 
             factorNewArray.struct = TabExtended.noType;
         } else {

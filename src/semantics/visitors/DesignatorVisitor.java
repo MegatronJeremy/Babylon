@@ -5,7 +5,9 @@ import rs.etf.pp1.symboltable.concepts.Obj;
 import rs.etf.pp1.symboltable.concepts.Struct;
 import semantics.TabExtended;
 import semantics.util.LogUtils;
+import semantics.util.ObjList;
 import semantics.util.StructList;
+import semantics.util.VisitorUtils;
 
 import java.util.Collection;
 
@@ -21,19 +23,65 @@ public class DesignatorVisitor extends VisitorAdaptor {
         Obj typeNode = TabExtended.find(designName);
 
         if (typeNode == TabExtended.noObj) {
-            LogUtils.logError("Error on line " +
-                    syntaxNode.getLine() + ": variable " + designName + " not declared.");
+            LogUtils.logError("Variable " + designName + " not declared.", syntaxNode);
         }
 
         return typeNode;
     }
 
     public void visit(DesignatorAssignListStmt designatorAssignListStmt) {
-        // TODO
+        Obj rValue = designatorAssignListStmt.getDesignator1().obj;
+        if (rValue.getType().getKind() != Struct.Array) {
+            LogUtils.logError("Right side of assign list " + rValue.getName() + " is not an array type.",
+                    designatorAssignListStmt.getDesignator());
+
+            return;
+        }
+
+        Obj fillArray = designatorAssignListStmt.getDesignator().obj;
+        if (fillArray.getType().getKind() != Struct.Array) {
+            LogUtils.logError("Variable length object in assign list " + rValue.getName() + " must be an array type.",
+                    designatorAssignListStmt.getDesignator());
+
+            return;
+        }
+
+        Struct rType = rValue.getType().getElemType();
+        for (Obj obj : designatorAssignListStmt.getDesignatorAssignList().objlist) {
+            if (obj == TabExtended.noObj) {
+                continue;
+            }
+
+            if (obj.getKind() != Obj.Var && obj.getKind() != Obj.Fld && obj.getKind() != Obj.Elem) {
+                LogUtils.logError("Left side of assign list " + rValue.getName()
+                                + " must be an of type variable, class field, or array element.",
+                        designatorAssignListStmt.getDesignator());
+
+                return;
+            }
+
+            Struct lType = obj.getType();
+            VisitorUtils.checkAssignability(lType, rType, designatorAssignListStmt.getDesignator());
+        }
+
+        VisitorUtils.checkAssignability(fillArray.getType().getElemType(), rType, designatorAssignListStmt.getDesignator());
     }
 
-    public void visit(DesignatorAssignList designatorAssignList) {
-        // TODO
+    public void visit(DesignatorAssignListExists designatorAssignListExists) {
+        designatorAssignListExists.objlist = designatorAssignListExists.getDesignatorAssignList().objlist;
+        designatorAssignListExists.objlist.add(designatorAssignListExists.getDesignatorOpt().obj);
+    }
+
+    public void visit(DesignatorAssignListEmpty designatorAssignListEmpty) {
+        designatorAssignListEmpty.objlist = new ObjList();
+    }
+
+    public void visit(DesignatorExists designatorExists) {
+        designatorExists.obj = designatorExists.getDesignator().obj;
+    }
+
+    public void visit(DesignatorEmpty designatorEmpty) {
+        designatorEmpty.obj = TabExtended.noObj;
     }
 
     public void visit(DesignatorOpAssign designatorOpAssign) {
@@ -42,9 +90,8 @@ public class DesignatorVisitor extends VisitorAdaptor {
 
         if (!rType.assignableTo(lType)) {
             StringBuilder sb = new StringBuilder();
-            sb.append("Error on line ");
-            sb.append(designatorOpAssign.getLine());
-            sb.append(": incompatible assignment expression for types ");
+            sb.append("Incompatible assignment expression for types ");
+
             sb.append(LogUtils.kindToString(lType.getKind()));
             if (lType.getKind() == Struct.Array) {
                 sb.append("[");
@@ -52,13 +99,15 @@ public class DesignatorVisitor extends VisitorAdaptor {
                 sb.append("]");
             }
             sb.append(" and ");
+
             sb.append(LogUtils.kindToString(rType.getKind()));
             if (rType.getKind() == Struct.Array) {
                 sb.append("[");
                 sb.append(LogUtils.kindToString(rType.getElemType().getKind()));
                 sb.append("]");
             }
-            LogUtils.logError(sb.toString());
+
+            LogUtils.logError(sb.toString(), designatorOpAssign);
         }
     }
 
@@ -67,7 +116,7 @@ public class DesignatorVisitor extends VisitorAdaptor {
         boolean validCall = true;
 
         if (Obj.Meth == func.getKind()) {
-            LogUtils.logInfo("Found function call on line " + designatorOpCall.getLine());
+            LogUtils.logInfo("Found function call " + func.getName(), designatorOpCall);
 
             StructList structList = designatorOpCall.getActParsOpt().structlist;
             Collection<Obj> localSymbols = func.getLocalSymbols();
@@ -76,9 +125,7 @@ public class DesignatorVisitor extends VisitorAdaptor {
             int formPars = func.getLevel();
 
             if (formPars != actPars) {
-                LogUtils.logError("Error on line " + designatorOpCall.getLine()
-                        + ": expected " + formPars + " parameters, but got "
-                        + actPars);
+                LogUtils.logError("Expected " + formPars + " parameters, but got " + actPars, designatorOpCall);
 
                 designatorOpCall.obj = TabExtended.noObj;
                 validCall = false;
@@ -88,11 +135,7 @@ public class DesignatorVisitor extends VisitorAdaptor {
                     Struct lType = obj.getType();
                     Struct rType = structList.get(i);
 
-                    if (!rType.assignableTo(lType)) {
-                        LogUtils.logError("Error on line " + designatorOpCall.getLine()
-                                + ": type " + LogUtils.kindToString(rType.getKind())
-                                + " not assignable to type " + LogUtils.kindToString(lType.getKind()));
-
+                    if (!VisitorUtils.checkAssignability(lType, rType, designatorOpCall)) {
                         validCall = false;
                     }
                 }
@@ -100,9 +143,7 @@ public class DesignatorVisitor extends VisitorAdaptor {
                 designatorOpCall.obj = func;
             }
         } else {
-            LogUtils.logError("Error on line " + designatorOpCall.getLine()
-                    + ": designator " + func.getName()
-                    + " is not a function");
+            LogUtils.logError("Designator " + func.getName() + " is not a function", designatorOpCall);
 
             validCall = false;
         }
@@ -117,10 +158,8 @@ public class DesignatorVisitor extends VisitorAdaptor {
         int kind = design.getType().getKind();
 
         if (kind != Struct.Int) {
-            LogUtils.logError("Error on line " + designatorOpIncrement.getLine() +
-                    ": invalid increment operation for type "
-                    + LogUtils.kindToString(kind)
-                    + " of variable" + design.getName());
+            LogUtils.logError("Invalid increment operation for type " + LogUtils.kindToString(kind)
+                    + " of variable" + design.getName(), designatorOpIncrement);
         }
     }
 
@@ -129,15 +168,14 @@ public class DesignatorVisitor extends VisitorAdaptor {
         int kind = design.getType().getKind();
 
         if (kind != Struct.Int) {
-            LogUtils.logError("Error on line " + designatorOpDecrement.getLine() +
-                    ": invalid decrement operation for type "
-                    + LogUtils.kindToString(kind)
-                    + " of variable " + design.getName());
+            LogUtils.logError("Invalid decrement operation for type " + LogUtils.kindToString(kind)
+                    + " of variable " + design.getName(), designatorOpDecrement);
         }
     }
 
     public void visit(DesignatorIndOpDot designatorIndOp) {
         // TODO when doing classes
+        // Declare as field object type
     }
 
     public void visit(DesignatorIndOpBracket designatorIndOp) {
@@ -145,16 +183,15 @@ public class DesignatorVisitor extends VisitorAdaptor {
         int kind = design.getType().getKind();
 
         if (kind != Struct.Array) {
-            LogUtils.logError("Error on line " + designatorIndOp.getLine() +
-                    ": invalid array indexing operation with type "
-                    + LogUtils.kindToString(kind)
-                    + " of variable " + design.getName());
+            LogUtils.logError("Invalid array indexing operation with type " + LogUtils.kindToString(kind)
+                    + " of variable " + design.getName(), designatorIndOp);
 
             designatorIndOp.obj = TabExtended.noObj;
         } else {
             // TODO see if this is good
             Struct elemType = design.getType().getElemType();
-            designatorIndOp.obj = new Obj(design.getKind(), design.getName(), elemType);
+            // Declare as element object type
+            designatorIndOp.obj = new Obj(Obj.Elem, design.getName(), elemType);
         }
     }
 

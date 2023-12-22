@@ -19,8 +19,7 @@ public class TypeVisitor extends VisitorAdaptor {
         if (Obj.Type == typeNode.getKind()) {
             type.struct = typeNode.getType();
         } else {
-            LogUtils.logError("Error on line " +
-                    type.getLine() + ": type " + typeName + " is not a type.");
+            LogUtils.logError("Type " + typeName + " is not a type.", type);
             type.struct = TabExtended.noType;
         }
     }
@@ -29,8 +28,7 @@ public class TypeVisitor extends VisitorAdaptor {
         Obj typeNode = TabExtended.find(typeName);
 
         if (typeNode == TabExtended.noObj) {
-            LogUtils.logError("Error on line " +
-                    type.getLine() + ": type " + typeName + " not declared.");
+            LogUtils.logError("Type " + typeName + " not declared.", type);
             type.struct = TabExtended.noType;
         } else {
             assignWithTypeCoherency(typeName, typeNode, type);

@@ -31,13 +31,13 @@
         <delete dir="${logs.dir}"/>
     </target>
 
-    <target name="makeDir">
+    <target name="make-dir">
         <mkdir dir="${build.dir}"/>
         <mkdir dir="${build.classes.dir}"/>
         <mkdir dir="${build.jar.dir}"/>
     </target>
 
-    <target name="lexerGen">
+    <target name="lexer-gen">
         <java jar="${libs.dir}/JFlex.jar" fork="true" failonerror="true">
             <arg value="-d"/>
             <arg value="${mjparser.dir}"/>
@@ -45,7 +45,7 @@
         </java>
     </target>
 
-    <target name="parserGen">
+    <target name="parser-gen">
         <java jar="${libs.dir}/cup_v10k.jar" fork="true" dir="${src.dir}" failonerror="true">
             <arg value="-destdir"/>
             <arg value="mjparser"/>
@@ -59,9 +59,9 @@
         </java>
     </target>
 
-    <target name="regenCode" depends="clean, makeDir, lexerGen, parserGen"/>
+    <target name="regen-code" depends="clean, make-dir, lexer-gen, parser-gen"/>
 
-    <target name="compile" depends="regenCode">
+    <target name="compile" depends="regen-code">
         <javac srcdir="${src.dir}" destdir="${build.classes.dir}" includeantruntime="false" debug="true"
                failonerror="true">
             <classpath refid="build-classpath"/>
@@ -78,12 +78,12 @@
         </jar>
     </target>
 
-    <property name="testFile" value="tests/test301.mj"/>
-    <property name="testFilePath" value="${testFile}"/>
+    <property name="test-file" value="tests/test301.mj"/>
+    <property name="test-file-path" value="${test-file}"/>
 
     <target name="run">
         <java classpathref="build-classpath" jar="${build.jar.dir}/MJCompiler.jar" fork="true">
-            <arg value="${testFilePath}"/>
+            <arg value="${test-file-path}"/>
         </java>
     </target>
 

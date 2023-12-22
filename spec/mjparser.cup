@@ -93,8 +93,9 @@ nonterminal rs.etf.pp1.symboltable.concepts.Struct Type, MethodType;
 nonterminal StatementList, Statement, StatementScopedOpen, ElseStatement;
 nonterminal ForDesignStmtListOpt, StatementReturnExpr, StatementPrintNumConst, ForDesignStmtList;
 
-nonterminal DesignatorStatement, DesignatorAssignList, DesignatorOpt;
-nonterminal rs.etf.pp1.symboltable.concepts.Obj Designator, DesignatorName, DesignatorOpCall;
+nonterminal DesignatorStatement;
+nonterminal rs.etf.pp1.symboltable.concepts.Obj Designator, DesignatorName, DesignatorOpCall, DesignatorOpt;
+nonterminal semantics.util.ObjList DesignatorAssignList;
 nonterminal DesignatorOperation;
 
 nonterminal semantics.util.StructList ActPars, ActParsOpt;
@@ -298,19 +299,19 @@ ForDesignStmtList ::= (ForDesignStmtListMultiple) ForDesignStmtList COMMA Design
 StatementScopedOpen ::= (StatementScopedOpen)
     ;
 
-// For the other one TODO do the check here
+// Do the checks for the other one as needed
 DesignatorStatement ::= (DesignatorOpStmt) DesignatorOperation
     | (DesignatorAssignListStmt) LBRACKET DesignatorAssignList MULTIPLY Designator RBRACKET ASSIGN Designator
     ;
 
-// TODO see what to do here
+// Make a list of objects here
 DesignatorAssignList ::= (DesignatorAssignListExists) DesignatorAssignList DesignatorOpt COMMA
     | (DesignatorAssignListEmpty)
     ;
 
-// TODO see if you need to do something here
-DesignatorOpt ::= (DesignatorOptClass) Designator
-    | (NoDesignatorOpt)
+// Return obj or noObj
+DesignatorOpt ::= (DesignatorExists) Designator
+    | (DesignatorEmpty)
     ;
 
 // DesignatorOpAssign - check if assignable

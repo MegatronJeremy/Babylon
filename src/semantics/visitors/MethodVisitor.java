@@ -21,11 +21,15 @@ public class MethodVisitor extends VisitorAdaptor {
         Struct returnType = semanticPass.currentMethod.getType();
 
         if (!returnFound && returnType != TabExtended.noType) {
-            LogUtils.logError("Error on line " + methodDecl.getLine() + ": function "
-                    + semanticPass.currentMethod.getName() + " has no return expression");
+            LogUtils.logError("Function "
+                            + semanticPass.currentMethod.getName()
+                            + " has no return expression",
+                    methodDecl);
         } else if (returnFound && returnType == TabExtended.noType) {
-            LogUtils.logError("Error on line " + methodDecl.getLine() + ": void function "
-                    + semanticPass.currentMethod.getName() + " has return expression");
+            LogUtils.logError("Void function "
+                            + semanticPass.currentMethod.getName()
+                            + " has return expression",
+                    methodDecl);
         }
         TabExtended.chainLocalSymbols(semanticPass.currentMethod);
         TabExtended.closeScope();

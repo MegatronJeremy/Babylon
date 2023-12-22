@@ -164,8 +164,20 @@ public class SemanticPass extends VisitorAdaptor {
         designatorVisitor.visit(designatorAssignListStmt);
     }
 
-    public void visit(DesignatorAssignList designatorAssignList) {
-        designatorVisitor.visit(designatorAssignList);
+    public void visit(DesignatorAssignListExists designatorAssignListExists) {
+        designatorVisitor.visit(designatorAssignListExists);
+    }
+
+    public void visit(DesignatorAssignListEmpty designatorAssignListEmpty) {
+        designatorVisitor.visit(designatorAssignListEmpty);
+    }
+
+    public void visit(DesignatorExists designatorExists) {
+        designatorVisitor.visit(designatorExists);
+    }
+
+    public void visit(DesignatorEmpty designatorEmpty) {
+        designatorVisitor.visit(designatorEmpty);
     }
 
     public void visit(DesignatorOpAssign designatorOpAssign) {
@@ -184,7 +196,6 @@ public class SemanticPass extends VisitorAdaptor {
         designatorVisitor.visit(designatorOpDecrement);
     }
 
-
     public void visit(DesignatorIndOpDot designatorIndOp) {
         designatorVisitor.visit(designatorIndOp);
     }
@@ -192,7 +203,6 @@ public class SemanticPass extends VisitorAdaptor {
     public void visit(DesignatorIndOpBracket designatorIndOp) {
         designatorVisitor.visit(designatorIndOp);
     }
-
 
     public void visit(DesignatorNoInd designatorNoInd) {
         designatorVisitor.visit(designatorNoInd);
@@ -218,21 +228,17 @@ public class SemanticPass extends VisitorAdaptor {
         exprVisitor.visit(exprPos);
     }
 
-
     public void visit(ExprNeg exprNeg) {
         exprVisitor.visit(exprNeg);
     }
-
 
     public void visit(TermMulop termMulop) {
         exprVisitor.visit(termMulop);
     }
 
-
     public void visit(TermFactor termFactor) {
         exprVisitor.visit(termFactor);
     }
-
 
     public void visit(FactorDesignator factorDesignator) {
         exprVisitor.visit(factorDesignator);
@@ -242,16 +248,13 @@ public class SemanticPass extends VisitorAdaptor {
         exprVisitor.visit(factorFunctionCall);
     }
 
-
     public void visit(FactorNumConst factorNumConst) {
         exprVisitor.visit(factorNumConst);
     }
 
-
     public void visit(FactorCharConst factorCharConst) {
         exprVisitor.visit(factorCharConst);
     }
-
 
     public void visit(FactorBoolConst factorBoolConst) {
         exprVisitor.visit(factorBoolConst);

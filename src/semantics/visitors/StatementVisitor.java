@@ -21,9 +21,9 @@ public class StatementVisitor extends VisitorAdaptor {
         int kind = statementPrint.getExpr().struct.getKind();
 
         if (!validPrintResults.contains(kind)) {
-            LogUtils.logError("Error on line " + statementPrint.getLine()
-                    + ": print expression not allowed with type "
-                    + LogUtils.kindToString(kind));
+            LogUtils.logError("Print expression not allowed with type "
+                            + LogUtils.kindToString(kind),
+                    statementPrint);
         }
     }
 
@@ -45,10 +45,12 @@ public class StatementVisitor extends VisitorAdaptor {
         if (!currentMethodType.compatibleWith(returnType)) {
             String kind = LogUtils.kindToString(returnType.getKind());
 
-            LogUtils.logError("Error on line " + statementReturnExprExists.getLine()
-                    + ": return expression type " + kind + " is not compatible "
-                    + "with the return type of function "
-                    + this.semanticPass.currentMethod.getName());
+            LogUtils.logError("Return expression type " +
+                            kind
+                            + " is not compatible "
+                            + "with the return type of function "
+                            + this.semanticPass.currentMethod.getName(),
+                    statementReturnExprExists);
         }
     }
 }

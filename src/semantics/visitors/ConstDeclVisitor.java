@@ -20,9 +20,7 @@ public class ConstDeclVisitor extends VisitorAdaptor {
             Struct lType = constDecl.getType().struct;
             Struct rType = obj.getType();
             if (!rType.equals(lType)) {
-                LogUtils.logError("Error on line " +
-                        constDecl.getLine() + ": incompatible assignment expression "
-                        + "for variable " + obj.getName());
+                LogUtils.logError("Incompatible assignment expression for variable " + obj.getName(), constDecl);
             }
         }
     }

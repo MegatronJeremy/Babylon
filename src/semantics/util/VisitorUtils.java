@@ -23,11 +23,22 @@ public class VisitorUtils {
 
     public static void checkAlreadyDeclared(Obj obj, SyntaxNode syntaxNode) {
         if (obj == TabExtended.noObj) {
-            LogUtils.logError("Error on line " + syntaxNode.getLine()
-                    + ": variable with name "
-                    + obj.getName() + " already declared");
+            LogUtils.logError("Variable with name "
+                    + obj.getName() + " already declared", syntaxNode);
         } else {
             LogUtils.logInfo("Declared variable " + obj.getName(), syntaxNode);
         }
+    }
+
+    public static boolean checkAssignability(Struct lType, Struct rType, SyntaxNode syntaxNode) {
+        if (!rType.assignableTo(lType)) {
+            LogUtils.logError("Type " + LogUtils.kindToString(rType.getKind())
+                            + " not assignable to type " + LogUtils.kindToString(lType.getKind()),
+                    syntaxNode);
+
+            return false;
+        }
+
+        return true;
     }
 }
