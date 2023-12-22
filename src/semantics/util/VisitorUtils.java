@@ -32,8 +32,8 @@ public class VisitorUtils {
 
     public static boolean checkAssignability(Struct lType, Struct rType, SyntaxNode syntaxNode) {
         if (!rType.assignableTo(lType)) {
-            LogUtils.logError("Type " + LogUtils.kindToString(rType.getKind())
-                            + " not assignable to type " + LogUtils.kindToString(lType.getKind()),
+            LogUtils.logError("Type " + LogUtils.structKindToString(rType.getKind())
+                            + " not assignable to type " + LogUtils.structKindToString(lType.getKind()),
                     syntaxNode);
 
             return false;

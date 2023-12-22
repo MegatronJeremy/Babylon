@@ -91,7 +91,7 @@ nonterminal FormParsOpt, FormParsList;
 nonterminal rs.etf.pp1.symboltable.concepts.Struct Type, MethodType;
 
 nonterminal StatementList, Statement, StatementScopedOpen, ElseStatement;
-nonterminal ForDesignStmtListOpt, StatementReturnExpr, StatementPrintNumConst, ForDesignStmtList;
+nonterminal ForEnter, ForDesignStmtListOpt, StatementReturnExpr, StatementPrintNumConst, ForDesignStmtList;
 
 nonterminal DesignatorStatement;
 nonterminal rs.etf.pp1.symboltable.concepts.Obj Designator, DesignatorName, DesignatorOpCall, DesignatorOpt;
@@ -269,7 +269,7 @@ Statement ::= (StatementDesignator) DesignatorStatement SEMI
     | (StatementReturn) RETURN StatementReturnExpr SEMI
     | (StatementRead) READ LPAREN Designator RPAREN SEMI
     | (StatementPrint) PRINT LPAREN Expr StatementPrintNumConst RPAREN SEMI
-    | (StatementFor) FOR LPAREN ForDesignStmtListOpt SEMI CondFactOpt SEMI ForDesignStmtListOpt RPAREN Statement
+    | (StatementFor) FOR ForEnter LPAREN ForDesignStmtListOpt SEMI CondFactOpt SEMI ForDesignStmtListOpt RPAREN Statement
     | (StatementScoped) LBRACE StatementScopedOpen StatementList RBRACE
     | (StatementError) error SEMI:l
     {: parser.report_error("Badly formed designator statement on line " + lleft, null); :}
@@ -285,6 +285,9 @@ StatementReturnExpr ::= (StatementReturnExprExists) Expr
 
 StatementPrintNumConst ::= (StatementPrintNumConstExists) COMMA NUM_CONST
     | (StatementPrintNumConstEmpty)
+    ;
+
+ForEnter ::= (ForEnter)
     ;
 
 ForDesignStmtListOpt ::= (ForDesignStmtListExists) ForDesignStmtList
@@ -364,8 +367,8 @@ CondTerm ::= (CondTermAND) CondTerm AND CondFact
 
 // Check if expression types compatible
 // Class or Array can only have != and ==
-CondFact ::= (CondFactSingle) Expr
-    | (CondFactRelop) Expr Relop Expr
+CondFact ::= (CondFactRelop) Expr Relop Expr
+    | (CondFactSingle) Expr
     ;
 
 // TODO This is for For statement

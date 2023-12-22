@@ -92,18 +92,18 @@ public class DesignatorVisitor extends VisitorAdaptor {
             StringBuilder sb = new StringBuilder();
             sb.append("Incompatible assignment expression for types ");
 
-            sb.append(LogUtils.kindToString(lType.getKind()));
+            sb.append(LogUtils.structKindToString(lType.getKind()));
             if (lType.getKind() == Struct.Array) {
                 sb.append("[");
-                sb.append(LogUtils.kindToString(lType.getElemType().getKind()));
+                sb.append(LogUtils.structKindToString(lType.getElemType().getKind()));
                 sb.append("]");
             }
             sb.append(" and ");
 
-            sb.append(LogUtils.kindToString(rType.getKind()));
+            sb.append(LogUtils.structKindToString(rType.getKind()));
             if (rType.getKind() == Struct.Array) {
                 sb.append("[");
-                sb.append(LogUtils.kindToString(rType.getElemType().getKind()));
+                sb.append(LogUtils.structKindToString(rType.getElemType().getKind()));
                 sb.append("]");
             }
 
@@ -158,7 +158,7 @@ public class DesignatorVisitor extends VisitorAdaptor {
         int kind = design.getType().getKind();
 
         if (kind != Struct.Int) {
-            LogUtils.logError("Invalid increment operation for type " + LogUtils.kindToString(kind)
+            LogUtils.logError("Invalid increment operation for type " + LogUtils.structKindToString(kind)
                     + " of variable" + design.getName(), designatorOpIncrement);
         }
     }
@@ -168,7 +168,7 @@ public class DesignatorVisitor extends VisitorAdaptor {
         int kind = design.getType().getKind();
 
         if (kind != Struct.Int) {
-            LogUtils.logError("Invalid decrement operation for type " + LogUtils.kindToString(kind)
+            LogUtils.logError("Invalid decrement operation for type " + LogUtils.structKindToString(kind)
                     + " of variable " + design.getName(), designatorOpDecrement);
         }
     }
@@ -183,7 +183,7 @@ public class DesignatorVisitor extends VisitorAdaptor {
         int kind = design.getType().getKind();
 
         if (kind != Struct.Array) {
-            LogUtils.logError("Invalid array indexing operation with type " + LogUtils.kindToString(kind)
+            LogUtils.logError("Invalid array indexing operation with type " + LogUtils.structKindToString(kind)
                     + " of variable " + design.getName(), designatorIndOp);
 
             designatorIndOp.obj = TabExtended.noObj;

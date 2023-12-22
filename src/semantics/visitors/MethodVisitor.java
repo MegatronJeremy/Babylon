@@ -34,6 +34,7 @@ public class MethodVisitor extends VisitorAdaptor {
         TabExtended.chainLocalSymbols(semanticPass.currentMethod);
         TabExtended.closeScope();
 
+        // reset parameters
         semanticPass.returnFound = false;
         semanticPass.currentMethod = null;
     }

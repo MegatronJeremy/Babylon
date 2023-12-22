@@ -3,6 +3,8 @@ package semantics.util;
 import ast.SyntaxNode;
 import mjparser.MJParser;
 import org.apache.log4j.Logger;
+import rs.etf.pp1.symboltable.concepts.Obj;
+import rs.etf.pp1.symboltable.concepts.Struct;
 
 public class LogUtils {
 
@@ -24,26 +26,47 @@ public class LogUtils {
         return errorDetected;
     }
 
-    public static String kindToString(int kind) {
+    public static String structKindToString(int kind) {
         switch (kind) {
-            case 0:
+            case Struct.None:
                 return "None";
-            case 1:
+            case Struct.Int:
                 return "Int";
-            case 2:
+            case Struct.Char:
                 return "Char";
-            case 3:
+            case Struct.Array:
                 return "Array";
-            case 4:
+            case Struct.Class:
                 return "Class";
-            case 5:
+            case Struct.Bool:
                 return "Bool";
-            case 6:
+            case Struct.Enum:
                 return "Enum";
-            case 7:
+            case Struct.Interface:
                 return "Interface";
             default:
                 return "Unknown"; // Handle unknown values if necessary
+        }
+    }
+
+    public static String objKindToString(int value) {
+        switch (value) {
+            case Obj.Con:
+                return "Con";
+            case Obj.Var:
+                return "Var";
+            case Obj.Type:
+                return "Type";
+            case Obj.Meth:
+                return "Meth";
+            case Obj.Fld:
+                return "Fld";
+            case Obj.Elem:
+                return "Elem";
+            case Obj.Prog:
+                return "Prog";
+            default:
+                return "Unknown";
         }
     }
 

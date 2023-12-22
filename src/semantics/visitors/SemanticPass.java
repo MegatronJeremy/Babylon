@@ -17,6 +17,7 @@ public class SemanticPass extends VisitorAdaptor {
     VisitorAdaptor exprVisitor = new ExprVisitor(this);
     Obj currentMethod = null;
     boolean returnFound = false;
+    boolean inForLoop = false;
     int nVars = 0;
     String currentNamespace = "";
 
@@ -144,8 +145,32 @@ public class SemanticPass extends VisitorAdaptor {
         methodVisitor.visit(actParsSingle);
     }
 
+    public void visit(StatementIfElse statementIfElse) {
+        statementVisitor.visit(statementIfElse);
+    }
+
+    public void visit(StatementBreak statementBreak) {
+        statementVisitor.visit(statementBreak);
+    }
+
+    public void visit(StatementContinue statementContinue) {
+        statementVisitor.visit(statementContinue);
+    }
+
+    public void visit(StatementRead statementRead) {
+        statementVisitor.visit(statementRead);
+    }
+
     public void visit(StatementPrint statementPrint) {
         statementVisitor.visit(statementPrint);
+    }
+
+    public void visit(ForEnter forEnter) {
+        statementVisitor.visit(forEnter);
+    }
+
+    public void visit(StatementFor statementFor) {
+        statementVisitor.visit(statementFor);
     }
 
     public void visit(StatementScoped statementScoped) {
