@@ -45,15 +45,16 @@ parser code {:
 
 scan with {:
 	Symbol s = this.getScanner().next_token();
-	if (s != null && s.value != null)
-		log.info(s + " " + s.value);
+	// TODO enable/disable this using args (somehow)
+	//if (s != null && s.value != null)
+	//	log.info(s + " " + s.value);
 	return s;
 :}
 
-terminal PROGRAM, BREAK, CLASS;
+terminal PROGRAM, CLASS;
 terminal ELSE, CONST, IF, NEW; 
 terminal PRINT, READ; 
-terminal RETURN, VOID, EXTENDS, CONTINUE, FOR, STATIC, NAMESPACE;
+terminal RETURN, VOID, EXTENDS, CONTINUE, BREAK, FOR, STATIC, NAMESPACE;
 
 terminal String IDENT;
 terminal Integer NUM_CONST;
@@ -77,12 +78,12 @@ nonterminal ConstDecl;
 nonterminal rs.etf.pp1.symboltable.concepts.Obj ConstType;
 nonterminal semantics.util.ObjList ConstList;
 
-nonterminal VarDeclList, VarDecl;
-nonterminal semantics.util.ObjList VarList;
+nonterminal VarDeclList;
+nonterminal semantics.util.ObjList VarList, VarDecl;
 nonterminal rs.etf.pp1.symboltable.concepts.Obj VarName;
 
-nonterminal ClassDecl, ExtendsClause, ClassBody;
-nonterminal StaticVarDeclList, StaticInitList, StaticInitializer, MethodDeclBody;
+nonterminal ClassDecl, ClassName, ExtendsClause, ClassBody;
+nonterminal StaticVarDeclList, StaticInitList, StaticInitializer, StaticInitializerStart, MethodDeclBody;
 nonterminal ClassVarDeclListOpt, ClassVarDeclList;
 
 nonterminal MethodDeclList, MethodDecl, MethodTypeName;
@@ -99,7 +100,8 @@ nonterminal semantics.util.ObjList DesignatorAssignList;
 nonterminal DesignatorOperation;
 
 nonterminal semantics.util.StructList ActPars, ActParsOpt;
-nonterminal Condition, CondTerm, CondFact, CondFactOpt;
+nonterminal rs.etf.pp1.symboltable.concepts.Struct Condition, CondTerm, CondFact;
+nonterminal CondFactOpt;
 
 nonterminal rs.etf.pp1.symboltable.concepts.Struct Expr, Term, Factor;
 
@@ -155,14 +157,13 @@ ConstType ::= (ConstNum) IDENT:varName ASSIGN NUM_CONST:numValue
     | (ConstBool) IDENT:varName ASSIGN BOOL_CONST:boolValue
     ;
 
-// Do nothing here
 VarDeclList ::= (VarDeclListExists) VarDeclList VarDecl
     | (VarDeclListEmpty)
     ;
 
-// Assign type to all variables in list
+// Assign type to all variables and pick up the varlist here
 VarDecl ::= (VarDeclCorrect) Type VarList SEMI
-    | (VerDeclError) error SEMI:l
+    | (VarDeclError) error SEMI:l
     {: parser.report_error("Badly formed variable declaration on line " + lleft, null); :}
     ;
 
@@ -180,7 +181,7 @@ VarName ::= (VarScalar) IDENT:varName
     ;
 
 // TODO classes
-ClassDecl ::= (ClassDecl) CLASS IDENT ExtendsClause LBRACE ClassBody RBRACE
+ClassDecl ::= (ClassDecl) CLASS ClassName ExtendsClause LBRACE ClassBody RBRACE
     ;
 
 ClassBody ::= (ClassBodyCorrect) StaticVarDeclList StaticInitList ClassVarDeclListOpt MethodDeclBody
@@ -189,8 +190,29 @@ ClassBody ::= (ClassBodyCorrect) StaticVarDeclList StaticInitList ClassVarDeclLi
       MethodDeclBody RBRACE
     ;
 
-MethodDeclBody ::= (MethodDeclBodyExists) LBRACE MethodDeclList RBRACE
-    | (MethodDeclBodyEmpty)
+// Open new namespace and set current class
+ClassName ::= (ClassName) IDENT:className
+    ;
+
+ExtendsClause ::= (ExtendsClauseExists) EXTENDS Type
+    | (ExtendsClauseEmpty)
+    | (ExtendsClauseError) error:l 
+    {: parser.report_error("Badly formed extends clause on line " + lleft, null); :}
+    ;
+
+// Add to list of static variables of the current class
+StaticVarDeclList ::= (StaticVarDeclListExists) StaticVarDeclList STATIC VarDecl
+    | (StaticVarDeclListEmpty)
+    ;
+
+StaticInitList ::= (StaticInitListExists) StaticInitializer StaticInitList
+    | (StaticInitListEmpty)
+    ;
+
+StaticInitializer ::= (StaticInitializer) StaticInitializerStart LBRACE StatementList RBRACE
+    ;
+
+StaticInitializerStart ::= (StaticInitializerStart) STATIC
     ;
 
 ClassVarDeclListOpt ::= (ClassVarDeclListExists) ClassVarDeclList
@@ -201,21 +223,8 @@ ClassVarDeclList ::= (ClassVarDeclListMultiple) ClassVarDeclList VarDecl
     | (ClassVarDeclSingle) VarDecl
     ;
 
-StaticVarDeclList ::= (StaticVarDeclListExists) StaticVarDeclList STATIC VarDecl
-    | (StaticVarDeclListEmpty)
-    ;
-
-StaticInitList ::= (StaticInitListExists) StaticInitializer StaticInitList
-    | (StaticInitListEmpty)
-    ;
-
-StaticInitializer ::= (StaticInitializer) STATIC LBRACE StatementList RBRACE
-    ;
-
-ExtendsClause ::= (ExtendsClauseExists) EXTENDS Type
-    | (ExtendsClauseEmpty)
-    | (ExtendsClauseError) error:l 
-    {: parser.report_error("Badly formed extends clause on line " + lleft, null); :}
+MethodDeclBody ::= (MethodDeclBodyExists) LBRACE MethodDeclList RBRACE
+    | (MethodDeclBodyEmpty)
     ;
 
 // Do nothing here
@@ -333,7 +342,7 @@ DesignatorOpCall ::= (DesignatorOpCall) Designator LPAREN ActParsOpt RPAREN
 // Do an indexing operation on the passed name
 // Check if the type is a class for the first one (TODO)
 // Check if the type is an array for the second one
-Designator ::= (DesignatorIndOpDot) Designator PERIOD IDENT
+Designator ::= (DesignatorIndOpDot) Designator PERIOD IDENT:identifier
     | (DesignatorIndOpBracket) Designator LBRACKET Expr RBRACKET
     | (DesignatorNoInd) DesignatorName
     ;

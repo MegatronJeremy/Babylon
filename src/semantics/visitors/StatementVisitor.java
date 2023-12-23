@@ -3,7 +3,7 @@ package semantics.visitors;
 import ast.*;
 import rs.etf.pp1.symboltable.concepts.Obj;
 import rs.etf.pp1.symboltable.concepts.Struct;
-import semantics.TabExtended;
+import semantics.adaptors.TabAdaptor;
 import semantics.util.LogUtils;
 
 import java.util.Arrays;
@@ -20,9 +20,18 @@ public class StatementVisitor extends VisitorAdaptor {
     }
 
     public void visit(StatementIfElse statementIfElse) {
+        int conditionKind = statementIfElse.getCondition().struct.getKind();
+
+        if (conditionKind != Struct.Bool) {
+            LogUtils.logError("If statement condition type "
+                            + LogUtils.structKindToString(conditionKind)
+                            + " is not allowed",
+                    statementIfElse);
+        }
     }
 
     public void visit(StatementBreak statementBreak) {
+        // TODO see why this returns line 0
         if (!semanticPass.inForLoop) {
             LogUtils.logError("Break usage not allowed outside of for loop",
                     statementBreak);
@@ -77,12 +86,12 @@ public class StatementVisitor extends VisitorAdaptor {
 
     public void visit(StatementScoped statementScoped) {
         // Close scope and destroy local variables
-        TabExtended.closeScope();
+        TabAdaptor.closeScope();
     }
 
     public void visit(StatementScopedOpen statementScopedOpen) {
         // Open new scope for local block
-        TabExtended.openScope();
+        TabAdaptor.openScope();
     }
 
     public void visit(StatementReturnExprExists statementReturnExprExists) {

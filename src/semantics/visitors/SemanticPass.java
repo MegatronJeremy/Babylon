@@ -2,7 +2,10 @@ package semantics.visitors;
 
 import ast.*;
 import rs.etf.pp1.symboltable.concepts.Obj;
+import rs.etf.pp1.symboltable.concepts.Scope;
+import semantics.adaptors.TabAdaptor;
 import semantics.util.LogUtils;
+import semantics.util.StaticClassFields;
 
 public class SemanticPass extends VisitorAdaptor {
 
@@ -15,13 +18,29 @@ public class SemanticPass extends VisitorAdaptor {
     VisitorAdaptor statementVisitor = new StatementVisitor(this);
     VisitorAdaptor designatorVisitor = new DesignatorVisitor(this);
     VisitorAdaptor exprVisitor = new ExprVisitor(this);
+    VisitorAdaptor classVisitor = new ClassVisitor(this);
     Obj currentMethod = null;
+    Obj currentClass = null;
     boolean returnFound = false;
     boolean inForLoop = false;
     int nVars = 0;
     String currentNamespace = "";
+    Scope programScope = null;
+    StaticClassFields staticClassFields = new StaticClassFields();
 
-    String getQualifiedName(String name) {
+    String getQualifiedNameDeclaration(String name) {
+        if (TabAdaptor.currentScope == programScope) {
+            // return name qualified to scope
+            return getQualifiedNameLookup(name);
+        } else {
+//            LogUtils.logInfo("Returning unqualified name");
+            // return as unqualified name (local to an inner scope)
+            return name;
+        }
+    }
+
+    String getQualifiedNameLookup(String name) {
+//        LogUtils.logInfo("Returning fully qualified name");
         return currentNamespace.equals("") ? name : currentNamespace + "::" + name;
     }
 
@@ -81,6 +100,10 @@ public class SemanticPass extends VisitorAdaptor {
         varDeclVisitor.visit(varDecl);
     }
 
+    public void visit(VarDeclError varDecl) {
+        varDeclVisitor.visit(varDecl);
+    }
+
     public void visit(VarListMultiple varListMultiple) {
         varDeclVisitor.visit(varListMultiple);
     }
@@ -91,6 +114,34 @@ public class SemanticPass extends VisitorAdaptor {
 
     public void visit(VarListError varListError) {
         varDeclVisitor.visit(varListError);
+    }
+
+    public void visit(ClassDecl classDecl) {
+        classVisitor.visit(classDecl);
+    }
+
+    public void visit(ClassName className) {
+        classVisitor.visit(className);
+    }
+
+    public void visit(ExtendsClauseExists extendsClauseExists) {
+        classVisitor.visit(extendsClauseExists);
+    }
+
+    public void visit(StaticVarDeclListExists staticVarDeclList) {
+        classVisitor.visit(staticVarDeclList);
+    }
+
+    public void visit(StaticVarDeclListEmpty staticVarDeclList) {
+        classVisitor.visit(staticVarDeclList);
+    }
+
+    public void visit(StaticInitializerStart staticInitializerStart) {
+        classVisitor.visit(staticInitializerStart);
+    }
+
+    public void visit(StaticInitializer staticInitializer) {
+        classVisitor.visit(staticInitializer);
     }
 
     public void visit(TypeNoNamespace typeNoNamespace) {
@@ -241,8 +292,32 @@ public class SemanticPass extends VisitorAdaptor {
         designatorVisitor.visit(designator);
     }
 
+    public void visit(ConditionOR conditionOR) {
+        exprVisitor.visit(conditionOR);
+    }
+
+    public void visit(ConditionCondTerm conditionCondTerm) {
+        exprVisitor.visit(conditionCondTerm);
+    }
+
+    public void visit(ConditionError conditionError) {
+        exprVisitor.visit(conditionError);
+    }
+
+    public void visit(CondTermAND condTermAND) {
+        exprVisitor.visit(condTermAND);
+    }
+
+    public void visit(CondTermFact condTermFact) {
+        exprVisitor.visit(condTermFact);
+    }
+
     public void visit(CondFactRelop condFactRelop) {
         exprVisitor.visit(condFactRelop);
+    }
+
+    public void visit(CondFactSingle condFactSingle) {
+        exprVisitor.visit(condFactSingle);
     }
 
     public void visit(ExprAddop exprAddop) {

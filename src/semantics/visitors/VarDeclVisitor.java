@@ -3,7 +3,7 @@ package semantics.visitors;
 import ast.*;
 import rs.etf.pp1.symboltable.concepts.Obj;
 import rs.etf.pp1.symboltable.concepts.Struct;
-import semantics.TabExtended;
+import semantics.adaptors.TabAdaptor;
 import semantics.util.ObjList;
 import semantics.util.VisitorUtils;
 
@@ -15,17 +15,17 @@ public class VarDeclVisitor extends VisitorAdaptor {
     }
 
     public void visit(VarScalar varScalar) {
-        String qualifiedName = semanticPass.getQualifiedName(varScalar.getVarName());
+        String qualifiedName = semanticPass.getQualifiedNameDeclaration(varScalar.getVarName());
 
         // Declare with noType
-        varScalar.obj = new Obj(Obj.Var, qualifiedName, TabExtended.noType);
+        varScalar.obj = new Obj(Obj.Var, qualifiedName, TabAdaptor.noType);
     }
 
     public void visit(VarArray varArray) {
-        String qualifiedName = semanticPass.getQualifiedName(varArray.getVarName());
+        String qualifiedName = semanticPass.getQualifiedNameDeclaration(varArray.getVarName());
 
         // Set elemType to noType for now
-        Struct varType = new Struct(Struct.Array, TabExtended.noType);
+        Struct varType = new Struct(Struct.Array, TabAdaptor.noType);
         varArray.obj = new Obj(Obj.Var, qualifiedName, varType);
     }
 
@@ -35,6 +35,12 @@ public class VarDeclVisitor extends VisitorAdaptor {
         for (Obj obj : varDecl.getVarList().objlist) {
             VisitorUtils.declareVariable(obj, declType, varDecl);
         }
+
+        varDecl.objlist = varDecl.getVarList().objlist;
+    }
+
+    public void visit(VarDeclError varDecl) {
+        varDecl.objlist = new ObjList();
     }
 
     public void visit(VarListMultiple varListMultiple) {

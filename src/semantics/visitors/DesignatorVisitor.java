@@ -2,14 +2,17 @@ package semantics.visitors;
 
 import ast.*;
 import rs.etf.pp1.symboltable.concepts.Obj;
+import rs.etf.pp1.symboltable.concepts.Scope;
 import rs.etf.pp1.symboltable.concepts.Struct;
-import semantics.TabExtended;
+import semantics.adaptors.TabAdaptor;
 import semantics.util.LogUtils;
 import semantics.util.ObjList;
 import semantics.util.StructList;
 import semantics.util.VisitorUtils;
 
 import java.util.Collection;
+import java.util.Iterator;
+import java.util.Objects;
 
 public class DesignatorVisitor extends VisitorAdaptor {
 
@@ -20,9 +23,9 @@ public class DesignatorVisitor extends VisitorAdaptor {
     }
 
     private Obj findDesignator(String designName, SyntaxNode syntaxNode) {
-        Obj typeNode = TabExtended.find(designName);
+        Obj typeNode = TabAdaptor.find(designName);
 
-        if (typeNode == TabExtended.noObj) {
+        if (typeNode == TabAdaptor.noObj) {
             LogUtils.logError("Variable " + designName + " not declared.", syntaxNode);
         }
 
@@ -48,7 +51,7 @@ public class DesignatorVisitor extends VisitorAdaptor {
 
         Struct rType = rValue.getType().getElemType();
         for (Obj obj : designatorAssignListStmt.getDesignatorAssignList().objlist) {
-            if (obj == TabExtended.noObj) {
+            if (obj == TabAdaptor.noObj) {
                 continue;
             }
 
@@ -81,7 +84,7 @@ public class DesignatorVisitor extends VisitorAdaptor {
     }
 
     public void visit(DesignatorEmpty designatorEmpty) {
-        designatorEmpty.obj = TabExtended.noObj;
+        designatorEmpty.obj = TabAdaptor.noObj;
     }
 
     public void visit(DesignatorOpAssign designatorOpAssign) {
@@ -124,20 +127,44 @@ public class DesignatorVisitor extends VisitorAdaptor {
             int actPars = structList.size();
             int formPars = func.getLevel();
 
-            if (formPars != actPars) {
-                LogUtils.logError("Expected " + formPars + " parameters, but got " + actPars, designatorOpCall);
+            boolean thisSkipped = true;
+            if (formPars > 0) {
+                Iterator<Obj> iter = localSymbols.iterator();
+                if (iter.hasNext()) {
+                    // handle special case when method has hidden this parameter
+                    String name = iter.next().getName();
+                    if (Objects.equals(name, "this")) {
+                        formPars--;
+                        thisSkipped = false;
+                    }
+                }
+            }
 
-                designatorOpCall.obj = TabExtended.noObj;
+            if (formPars != actPars) {
+                LogUtils.logError("Expected " + formPars + " parameter(s), but got " + actPars, designatorOpCall);
+
+                designatorOpCall.obj = TabAdaptor.noObj;
                 validCall = false;
             } else {
-                int i = 0;
+                int i = 0, sz = structList.size();
                 for (Obj obj : localSymbols) {
+                    if (i == sz) {
+                        break;
+                    }
+
+                    if (!thisSkipped) {
+                        thisSkipped = true;
+                        continue;
+                    }
+
                     Struct lType = obj.getType();
                     Struct rType = structList.get(i);
 
                     if (!VisitorUtils.checkAssignability(lType, rType, designatorOpCall)) {
                         validCall = false;
                     }
+
+                    i = i + 1;
                 }
 
                 designatorOpCall.obj = func;
@@ -149,7 +176,7 @@ public class DesignatorVisitor extends VisitorAdaptor {
         }
 
         if (!validCall) {
-            designatorOpCall.obj = TabExtended.noObj;
+            designatorOpCall.obj = TabAdaptor.noObj;
         }
     }
 
@@ -174,8 +201,47 @@ public class DesignatorVisitor extends VisitorAdaptor {
     }
 
     public void visit(DesignatorIndOpDot designatorIndOp) {
-        // TODO when doing classes
-        // Declare as field object type
+        Obj design = designatorIndOp.getDesignator().obj;
+        Struct type = design.getType();
+        String identifier = designatorIndOp.getIdentifier();
+
+        if (type.getKind() != Struct.Class) {
+            LogUtils.logError("Dot operation only allowed on class type",
+                    designatorIndOp);
+            return;
+        }
+
+        Obj obj;
+
+        if (Objects.equals(design.getName(), "this")) {
+            // special case
+            Scope scopeToSearch = TabAdaptor.currentScope.getOuter(); // look in outer scope (not yet chained)
+            obj = scopeToSearch.findSymbol(identifier);
+        } else {
+            obj = type.getMembersTable().searchKey(identifier);
+        }
+
+        if (obj == null) {
+            LogUtils.logError("Variable "
+                            + identifier
+                            + " is not a class member",
+                    designatorIndOp);
+        } else if (design.getKind() == Obj.Type &&
+                !semanticPass.staticClassFields.get(design.getName()).contains(obj.getName())) {
+            // can only return static class field
+            LogUtils.logError("Variable "
+                            + obj.getName()
+                            + " is not a static class field",
+                    designatorIndOp);
+
+            obj = null;
+        }
+
+        if (obj == null) {
+            obj = TabAdaptor.noObj;
+        }
+
+        designatorIndOp.obj = obj;
     }
 
     public void visit(DesignatorIndOpBracket designatorIndOp) {
@@ -186,7 +252,7 @@ public class DesignatorVisitor extends VisitorAdaptor {
             LogUtils.logError("Invalid array indexing operation with type " + LogUtils.structKindToString(kind)
                     + " of variable " + design.getName(), designatorIndOp);
 
-            designatorIndOp.obj = TabExtended.noObj;
+            designatorIndOp.obj = TabAdaptor.noObj;
         } else {
             // TODO see if this is good
             Struct elemType = design.getType().getElemType();
@@ -210,15 +276,13 @@ public class DesignatorVisitor extends VisitorAdaptor {
     public void visit(DesignatorNameNoNamespace designator) {
         // First look for implicit namespace and then for global namespace if not found
         String designatorName = designator.getDesignName();
-        String qualifiedName = semanticPass.getQualifiedName(designatorName);
-        Obj obj = TabExtended.find(qualifiedName);
+        String qualifiedName = semanticPass.getQualifiedNameLookup(designatorName);
+        Obj obj = TabAdaptor.find(qualifiedName);
 
-        if (obj == TabExtended.noObj) {
+        if (obj == TabAdaptor.noObj) {
             obj = findDesignator(designatorName, designator);
         }
 
         designator.obj = obj;
     }
-
-
 }

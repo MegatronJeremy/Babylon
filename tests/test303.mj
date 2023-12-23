@@ -3,6 +3,7 @@
 program test_303
 
 namespace Predmeti{
+    const int cinilac = 4, delilac = 3;
 
 	class Predmet
 	{
@@ -59,18 +60,16 @@ namespace Predmeti{
 	{}
 }
 
-const int cinilac = 4, delilac = 3;
-
 class ProstiBrojevi{
-	
+
 	static int prosti[];
 	static int X,i,j;
 	static bool flag;
-	
+
 	static{
 		print('s'); print('t'); print('a'); print('t'); print('i'); print('c'); print(eol);
 		prosti = new int[10];
-		
+
 		for( X = 0, i = 2; X < 10; i++){
 			flag = true;
 			for(j = 2; j < i; j++){
@@ -107,20 +106,20 @@ int tezinaK, tezinaS;
 		s1 = new Predmeti::Sfera();
 		s1.postaviPoluprecnik(1);
 		s1.postaviVrstu('s');
-		s2 = new Sfera();
+		s2 = new Predmeti::Sfera();
 		s2.postaviPoluprecnik(2);
 		s2.postaviVrstu('s');
-		s3 = new Sfera();
+		s3 = new Predmeti::Sfera();
 		s3.postaviPoluprecnik(3);
 		s3.postaviVrstu('s');
 		
-		k3 = new Kvadar();
+		k3 = new Predmeti::Kvadar();
 		k3.postaviStranice(1,2,3);
 		k3.postaviVrstu('k');
-		k1 = new Kvadar();
+		k1 = new Predmeti::Kvadar();
 		k1.postaviStranice(2,3,4);
 		k1.postaviVrstu('k');
-		k2 = new Kvadar();
+		k2 = new Predmeti::Kvadar();
 		k2.postaviStranice(3,4,5);
 		k2.postaviVrstu('k');
 		

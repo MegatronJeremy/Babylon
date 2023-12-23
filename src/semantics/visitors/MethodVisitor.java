@@ -3,7 +3,7 @@ package semantics.visitors;
 import ast.*;
 import rs.etf.pp1.symboltable.concepts.Obj;
 import rs.etf.pp1.symboltable.concepts.Struct;
-import semantics.TabExtended;
+import semantics.adaptors.TabAdaptor;
 import semantics.util.LogUtils;
 import semantics.util.StructList;
 import semantics.util.VisitorUtils;
@@ -20,19 +20,19 @@ public class MethodVisitor extends VisitorAdaptor {
         boolean returnFound = semanticPass.returnFound;
         Struct returnType = semanticPass.currentMethod.getType();
 
-        if (!returnFound && returnType != TabExtended.noType) {
+        if (!returnFound && returnType != TabAdaptor.noType) {
             LogUtils.logError("Function "
                             + semanticPass.currentMethod.getName()
                             + " has no return expression",
                     methodDecl);
-        } else if (returnFound && returnType == TabExtended.noType) {
+        } else if (returnFound && returnType == TabAdaptor.noType) {
             LogUtils.logError("Void function "
                             + semanticPass.currentMethod.getName()
                             + " has return expression",
                     methodDecl);
         }
-        TabExtended.chainLocalSymbols(semanticPass.currentMethod);
-        TabExtended.closeScope();
+        TabAdaptor.chainLocalSymbols(semanticPass.currentMethod);
+        TabAdaptor.closeScope();
 
         // reset parameters
         semanticPass.returnFound = false;
@@ -41,10 +41,16 @@ public class MethodVisitor extends VisitorAdaptor {
 
     public void visit(MethodTypeName methodTypeName) {
         // Opening method declaration
-        String qualifiedName = semanticPass.getQualifiedName(methodTypeName.getMethodName());
-        semanticPass.currentMethod = TabExtended.insert(Obj.Meth, qualifiedName, methodTypeName.getMethodType().struct);
-        semanticPass.currentMethod.setLevel(0); // 0 formal parameters at first
-        TabExtended.openScope();
+        String qualifiedName = semanticPass.getQualifiedNameDeclaration(methodTypeName.getMethodName());
+        semanticPass.currentMethod = TabAdaptor.insert(Obj.Meth, qualifiedName, methodTypeName.getMethodType().struct);
+        TabAdaptor.openScope();
+
+        if (semanticPass.currentClass != null) {
+            TabAdaptor.insert(Obj.Var, "this", semanticPass.currentClass.getType());
+            semanticPass.currentMethod.setLevel(1); // implicit formal parameter
+        } else {
+            semanticPass.currentMethod.setLevel(0); // 0 formal parameters at first
+        }
 
         LogUtils.logInfo("Processing function " + qualifiedName, methodTypeName);
     }
@@ -54,7 +60,7 @@ public class MethodVisitor extends VisitorAdaptor {
     }
 
     public void visit(MethodTypeVoid methodTypeVoid) {
-        methodTypeVoid.struct = TabExtended.noType;
+        methodTypeVoid.struct = TabAdaptor.noType;
     }
 
     public void visit(FormParsListSingle formParsList) {

@@ -4,7 +4,7 @@ import ast.Program;
 import java_cup.runtime.Symbol;
 import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
-import semantics.TabExtended;
+import semantics.adaptors.TabAdaptor;
 import semantics.visitors.SemanticPass;
 import util.Log4JUtils;
 
@@ -31,9 +31,10 @@ public class MJParserTest {
             Symbol s = p.parse();  //pocetak parsiranja
 
             Program program = (Program) (s.value);
-            TabExtended.init();
+            TabAdaptor.init();
             // ispis sintaksnog stabla
-            log.info(program.toString(""));
+            // TODO enable/disable this using args
+//            log.info(program.toString(""));
             log.info("===================================");
 
             // ispis prepoznatih programskih konstrukcija
@@ -41,7 +42,7 @@ public class MJParserTest {
             program.traverseBottomUp(v);
 
             log.info("===================================");
-            TabExtended.dump();
+            TabAdaptor.dump();
 
             log.info("===================================");
             if (!p.errorDetected && v.passed()) {
