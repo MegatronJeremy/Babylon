@@ -108,10 +108,10 @@ nonterminal rs.etf.pp1.symboltable.concepts.Struct Expr, Term, Factor;
 nonterminal Label, Assignop, Addop, Mulop;
 nonterminal java.lang.String Relop;
 
-precedence left ELSE; 
+precedence left ELSE;
 
 // Need to check if main exists and has correct namespace and return value
-Program ::= (Program) PROGRAM ProgName:p NamespaceDeclList DeclList LBRACE MethodDeclList RBRACE
+Program ::= (Program) PROGRAM ProgName NamespaceDeclList DeclList LBRACE MethodDeclList RBRACE
     ;
 
 // Open program scope 

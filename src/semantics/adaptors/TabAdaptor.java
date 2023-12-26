@@ -12,4 +12,8 @@ public class TabAdaptor extends Tab {
 
         currentScope.addToLocals(new Obj(Obj.Type, "bool", boolType));
     }
+
+    public static void dump() {
+        dump(new DumpSymbolTableVisitorAdaptor());
+    }
 }
