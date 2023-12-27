@@ -3,7 +3,7 @@ package semantics.util;
 import ast.SyntaxNode;
 import rs.etf.pp1.symboltable.concepts.Obj;
 import rs.etf.pp1.symboltable.concepts.Struct;
-import semantics.adaptors.TabAdaptor;
+import semantics.decorators.TabExtended;
 
 public class VisitorUtils {
 
@@ -16,14 +16,14 @@ public class VisitorUtils {
             currentType = declType;
         }
 
-        Obj objNode = TabAdaptor.insert(obj.getKind(), obj.getName(), currentType);
-        TabAdaptor.currentScope().addToLocals(objNode);
+        Obj objNode = TabExtended.insert(obj.getKind(), obj.getName(), currentType);
+        TabExtended.currentScope().addToLocals(objNode);
 
         checkAlreadyDeclared(obj, syntaxNode);
     }
 
     public static void checkAlreadyDeclared(Obj obj, SyntaxNode syntaxNode) {
-        if (obj == TabAdaptor.noObj) {
+        if (obj == TabExtended.noObj) {
             LogUtils.logError("Variable with name "
                     + obj.getName() + " already declared", syntaxNode);
         } else {

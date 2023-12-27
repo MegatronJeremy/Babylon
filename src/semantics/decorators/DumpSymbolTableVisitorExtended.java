@@ -1,9 +1,9 @@
-package semantics.adaptors;
+package semantics.decorators;
 
 import rs.etf.pp1.symboltable.concepts.Struct;
 import rs.etf.pp1.symboltable.visitors.DumpSymbolTableVisitor;
 
-public class DumpSymbolTableVisitorAdaptor extends DumpSymbolTableVisitor {
+public class DumpSymbolTableVisitorExtended extends DumpSymbolTableVisitor {
     @Override
     public void visitStructNode(Struct structToVisit) {
         switch (structToVisit.getKind()) {

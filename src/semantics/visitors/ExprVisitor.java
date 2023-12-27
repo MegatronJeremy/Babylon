@@ -2,7 +2,7 @@ package semantics.visitors;
 
 import ast.*;
 import rs.etf.pp1.symboltable.concepts.Struct;
-import semantics.adaptors.TabAdaptor;
+import semantics.decorators.TabExtended;
 import semantics.util.LogUtils;
 
 import java.util.Objects;
@@ -15,7 +15,7 @@ public class ExprVisitor extends VisitorAdaptor {
     }
 
     public void visit(ConditionOR conditionOR) {
-        conditionOR.struct = TabAdaptor.boolType;
+        conditionOR.struct = TabExtended.boolType;
     }
 
     public void visit(ConditionCondTerm conditionCondTerm) {
@@ -23,11 +23,11 @@ public class ExprVisitor extends VisitorAdaptor {
     }
 
     public void visit(ConditionError conditionError) {
-        conditionError.struct = TabAdaptor.noType;
+        conditionError.struct = TabExtended.noType;
     }
 
     public void visit(CondTermAND condTermAND) {
-        condTermAND.struct = TabAdaptor.boolType;
+        condTermAND.struct = TabExtended.boolType;
     }
 
     public void visit(CondTermFact condTermFact) {
@@ -58,7 +58,7 @@ public class ExprVisitor extends VisitorAdaptor {
             errorFound = true;
         }
 
-        condFactRelop.struct = errorFound ? TabAdaptor.noType : TabAdaptor.boolType;
+        condFactRelop.struct = errorFound ? TabExtended.noType : TabExtended.boolType;
     }
 
     public void visit(CondFactSingle condFactSingle) {
@@ -75,7 +75,7 @@ public class ExprVisitor extends VisitorAdaptor {
                             + " and " + LogUtils.structKindToString(rType.getKind()),
                     exprAddop);
 
-            exprAddop.struct = TabAdaptor.noType;
+            exprAddop.struct = TabExtended.noType;
         } else {
             exprAddop.struct = lType;
         }
@@ -91,7 +91,7 @@ public class ExprVisitor extends VisitorAdaptor {
             LogUtils.logError("Incompatible negation for type " + LogUtils.structKindToString(type.getKind()),
                     exprNeg);
 
-            exprNeg.struct = TabAdaptor.noType;
+            exprNeg.struct = TabExtended.noType;
         } else {
             exprNeg.struct = type;
         }
@@ -107,7 +107,7 @@ public class ExprVisitor extends VisitorAdaptor {
                             + " and " + LogUtils.structKindToString(rType.getKind()),
                     termMulop);
 
-            termMulop.struct = TabAdaptor.noType;
+            termMulop.struct = TabExtended.noType;
         } else {
             termMulop.struct = lType;
         }
@@ -126,15 +126,15 @@ public class ExprVisitor extends VisitorAdaptor {
     }
 
     public void visit(FactorNumConst factorNumConst) {
-        factorNumConst.struct = TabAdaptor.intType;
+        factorNumConst.struct = TabExtended.intType;
     }
 
     public void visit(FactorCharConst factorCharConst) {
-        factorCharConst.struct = TabAdaptor.charType;
+        factorCharConst.struct = TabExtended.charType;
     }
 
     public void visit(FactorBoolConst factorBoolConst) {
-        factorBoolConst.struct = TabAdaptor.boolType;
+        factorBoolConst.struct = TabExtended.boolType;
     }
 
     public void visit(FactorNewArray factorNewArray) {
@@ -144,7 +144,7 @@ public class ExprVisitor extends VisitorAdaptor {
                             + LogUtils.structKindToString(exprType.getKind()),
                     factorNewArray);
 
-            factorNewArray.struct = TabAdaptor.noType;
+            factorNewArray.struct = TabExtended.noType;
         } else {
             // Create new array type
             factorNewArray.struct = new Struct(Struct.Array, factorNewArray.getType().struct);
@@ -157,7 +157,7 @@ public class ExprVisitor extends VisitorAdaptor {
             LogUtils.logError("New operation called on a non-class type",
                     factorNewClass);
 
-            factorNewClass.struct = TabAdaptor.noType;
+            factorNewClass.struct = TabExtended.noType;
         } else {
             factorNewClass.struct = type;
         }

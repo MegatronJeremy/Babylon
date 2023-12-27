@@ -3,7 +3,7 @@ package semantics.visitors;
 import ast.*;
 import rs.etf.pp1.symboltable.concepts.Obj;
 import rs.etf.pp1.symboltable.concepts.Struct;
-import semantics.adaptors.TabAdaptor;
+import semantics.decorators.TabExtended;
 import semantics.util.LogUtils;
 
 import java.util.Arrays;
@@ -86,12 +86,12 @@ public class StatementVisitor extends VisitorAdaptor {
 
     public void visit(StatementScoped statementScoped) {
         // Close scope and destroy local variables
-        TabAdaptor.closeScope();
+        TabExtended.closeScope();
     }
 
     public void visit(StatementScopedOpen statementScopedOpen) {
         // Open new scope for local block
-        TabAdaptor.openScope();
+        TabExtended.openScope();
     }
 
     public void visit(StatementReturnExprExists statementReturnExprExists) {
@@ -110,8 +110,8 @@ public class StatementVisitor extends VisitorAdaptor {
         if (!currentMethodType.compatibleWith(returnType)) {
             String kind = LogUtils.structKindToString(returnType.getKind());
 
-            LogUtils.logError("Return expression type " +
-                            kind
+            LogUtils.logError("Return expression type "
+                            + kind
                             + " is not compatible "
                             + "with the return type of function "
                             + this.semanticPass.currentMethod.getName(),

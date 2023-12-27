@@ -5,7 +5,7 @@ import ast.TypeNamespace;
 import ast.TypeNoNamespace;
 import ast.VisitorAdaptor;
 import rs.etf.pp1.symboltable.concepts.Obj;
-import semantics.adaptors.TabAdaptor;
+import semantics.decorators.TabExtended;
 import semantics.util.LogUtils;
 
 public class TypeVisitor extends VisitorAdaptor {
@@ -20,16 +20,16 @@ public class TypeVisitor extends VisitorAdaptor {
             type.struct = typeNode.getType();
         } else {
             LogUtils.logError("Type " + typeName + " is not a type.", type);
-            type.struct = TabAdaptor.noType;
+            type.struct = TabExtended.noType;
         }
     }
 
     private void assignType(String typeName, Type type) {
-        Obj typeNode = TabAdaptor.find(typeName);
+        Obj typeNode = TabExtended.find(typeName);
 
-        if (typeNode == TabAdaptor.noObj) {
+        if (typeNode == TabExtended.noObj) {
             LogUtils.logError("Type " + typeName + " not declared.", type);
-            type.struct = TabAdaptor.noType;
+            type.struct = TabExtended.noType;
         } else {
             assignWithTypeCoherency(typeName, typeNode, type);
         }
@@ -37,9 +37,9 @@ public class TypeVisitor extends VisitorAdaptor {
 
     public void visit(TypeNoNamespace typeNoNamespace) {
         String qualifiedName = semanticPass.getQualifiedNameLookup(typeNoNamespace.getTypeName());
-        Obj typeNode = TabAdaptor.find(qualifiedName);
+        Obj typeNode = TabExtended.find(qualifiedName);
 
-        if (typeNode == TabAdaptor.noObj) {
+        if (typeNode == TabExtended.noObj) {
             // Not found, look for global (non-qualified) name
             assignType(typeNoNamespace.getTypeName(), typeNoNamespace);
         } else {

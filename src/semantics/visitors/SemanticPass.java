@@ -3,12 +3,13 @@ package semantics.visitors;
 import ast.*;
 import rs.etf.pp1.symboltable.concepts.Obj;
 import rs.etf.pp1.symboltable.concepts.Scope;
-import semantics.adaptors.TabAdaptor;
+import semantics.decorators.TabExtended;
 import semantics.util.LogUtils;
 import semantics.util.StaticClassFields;
 
 public class SemanticPass extends VisitorAdaptor {
 
+    private static SemanticPass instance = null;
     VisitorAdaptor programVisitor = new ProgramVisitor(this);
     VisitorAdaptor namespaceVisitor = new NamespaceVisitor(this);
     VisitorAdaptor constDeclVisitor = new ConstDeclVisitor(this);
@@ -28,8 +29,23 @@ public class SemanticPass extends VisitorAdaptor {
     Scope programScope = null;
     StaticClassFields staticClassFields = new StaticClassFields();
 
+    private SemanticPass() {
+    }
+
+    public static SemanticPass getInstance() {
+        if (instance == null) {
+            instance = new SemanticPass();
+        }
+
+        return instance;
+    }
+
+    public int getnVars() {
+        return nVars;
+    }
+
     String getQualifiedNameDeclaration(String name) {
-        if (TabAdaptor.currentScope == programScope) {
+        if (TabExtended.currentScope == programScope) {
             // return name qualified to scope
             return getQualifiedNameLookup(name);
         } else {

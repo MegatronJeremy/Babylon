@@ -1,18 +1,18 @@
-package semantics.adaptors;
+package semantics.decorators;
 
 import rs.etf.pp1.symboltable.concepts.Struct;
 import rs.etf.pp1.symboltable.structure.SymbolDataStructure;
 
-public class StructAdaptor extends Struct {
-    public StructAdaptor(int kind) {
+public class StructExtended extends Struct {
+    public StructExtended(int kind) {
         super(kind);
     }
 
-    public StructAdaptor(int kind, Struct elemType) {
+    public StructExtended(int kind, Struct elemType) {
         super(kind, elemType);
     }
 
-    public StructAdaptor(int kind, SymbolDataStructure members) {
+    public StructExtended(int kind, SymbolDataStructure members) {
         super(kind, members);
     }
 

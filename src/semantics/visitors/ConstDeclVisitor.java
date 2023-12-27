@@ -3,7 +3,7 @@ package semantics.visitors;
 import ast.*;
 import rs.etf.pp1.symboltable.concepts.Obj;
 import rs.etf.pp1.symboltable.concepts.Struct;
-import semantics.adaptors.TabAdaptor;
+import semantics.decorators.TabExtended;
 import semantics.util.LogUtils;
 import semantics.util.ObjList;
 import semantics.util.VisitorUtils;
@@ -39,10 +39,10 @@ public class ConstDeclVisitor extends VisitorAdaptor {
         String qualifiedName = semanticPass.getQualifiedNameDeclaration(constNum.getVarName());
 
         // Set address of const object
-        Obj obj = TabAdaptor.insert(Obj.Con, qualifiedName, TabAdaptor.intType);
+        Obj obj = TabExtended.insert(Obj.Con, qualifiedName, TabExtended.intType);
         obj.setAdr(constNum.getNumValue());
 
-        TabAdaptor.currentScope().addToLocals(obj);
+        TabExtended.currentScope().addToLocals(obj);
         constNum.obj = obj;
 
         VisitorUtils.checkAlreadyDeclared(obj, constNum);
@@ -52,10 +52,10 @@ public class ConstDeclVisitor extends VisitorAdaptor {
         String qualifiedName = semanticPass.getQualifiedNameDeclaration(constChar.getVarName());
 
         // Set address of const object
-        Obj obj = TabAdaptor.insert(Obj.Con, qualifiedName, TabAdaptor.charType);
+        Obj obj = TabExtended.insert(Obj.Con, qualifiedName, TabExtended.charType);
         obj.setAdr(constChar.getCharValue());
 
-        TabAdaptor.currentScope().addToLocals(obj);
+        TabExtended.currentScope().addToLocals(obj);
         constChar.obj = obj;
 
         VisitorUtils.checkAlreadyDeclared(obj, constChar);
@@ -65,10 +65,10 @@ public class ConstDeclVisitor extends VisitorAdaptor {
         String qualifiedName = semanticPass.getQualifiedNameDeclaration(constBool.getVarName());
 
         // Set address of const object
-        Obj obj = TabAdaptor.insert(Obj.Con, qualifiedName, TabAdaptor.boolType);
+        Obj obj = TabExtended.insert(Obj.Con, qualifiedName, TabExtended.boolType);
         obj.setAdr(constBool.getBoolValue() ? 1 : 0);
 
-        TabAdaptor.currentScope().addToLocals(obj);
+        TabExtended.currentScope().addToLocals(obj);
         constBool.obj = obj;
 
         VisitorUtils.checkAlreadyDeclared(obj, constBool);

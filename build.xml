@@ -10,6 +10,8 @@
     <property name="ast.dir" location="src/ast"/>
     <property name="logs.dir" location="logs"/>
     <property name="out.idea.dir" location="out"/>
+    <property name="tests.dir" location="tests"/>
+    <property name="out.dir" location="output"/>
 
     <path id="build-classpath">
         <fileset dir="${libs.dir}">
@@ -78,8 +80,30 @@
         </jar>
     </target>
 
-    <property name="test-file" value="tests/test301.mj"/>
-    <property name="test-file-path" value="${test-file}"/>
+    <property name="out-file" value="program.obj"/>
+    <property name="out-file-path" value="${out.dir}/${out-file}"/>
+
+    <target name="disasm">
+        <java classname="rs.etf.pp1.mj.runtime.disasm">
+            <arg value="${out-file-path}"/>
+            <classpath>
+                <pathelement location="lib/mj-runtime-1.1.jar"/>
+            </classpath>
+        </java>
+    </target>
+
+    <target name="run-obj">
+        <java classname="rs.etf.pp1.mj.runtime.Run">
+            <arg value="${out-file-path}"/>
+            <arg value="-debug"/>
+            <classpath>
+                <pathelement location="lib/mj-runtime-1.1.jar"/>
+            </classpath>
+        </java>
+    </target>
+
+    <property name="test-file" value="test301.mj"/>
+    <property name="test-file-path" value="${tests.dir}/${test-file}"/>
 
     <target name="run">
         <java classpathref="build-classpath" jar="${build.jar.dir}/MJCompiler.jar" fork="true">

@@ -86,7 +86,8 @@ nonterminal ClassDecl, ClassName, ExtendsClause, ClassBody;
 nonterminal StaticVarDeclList, StaticInitList, StaticInitializer, StaticInitializerStart, MethodDeclBody;
 nonterminal ClassVarDeclListOpt, ClassVarDeclList;
 
-nonterminal MethodDeclList, MethodDecl, MethodTypeName;
+nonterminal MethodDeclList, MethodDecl;
+nonterminal rs.etf.pp1.symboltable.concepts.Obj MethodTypeName;
 nonterminal FormParsOpt, FormParsList;
 
 nonterminal rs.etf.pp1.symboltable.concepts.Struct Type, MethodType;
@@ -399,9 +400,9 @@ Term ::= (TermMulop) Term Mulop Factor
 
 Factor ::= (FactorDesignator) Designator
     | (FactorFunctionCall) DesignatorOpCall
-    | (FactorNumConst) NUM_CONST
-    | (FactorCharConst) CHAR_CONST
-    | (FactorBoolConst) BOOL_CONST
+    | (FactorNumConst) NUM_CONST:value
+    | (FactorCharConst) CHAR_CONST:value
+    | (FactorBoolConst) BOOL_CONST:value
     | (FactorNewArray) NEW Type LBRACKET Expr RBRACKET
     | (FactorNewClass) NEW Type LPAREN ActParsOpt RPAREN    
     | (FactorExpr) LPAREN Expr RPAREN

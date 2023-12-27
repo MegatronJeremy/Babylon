@@ -1,14 +1,17 @@
 package mjparser;
 
 import ast.Program;
+import codegen.visitors.CodeGenerator;
 import java_cup.runtime.Symbol;
 import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
-import semantics.adaptors.TabAdaptor;
+import rs.etf.pp1.mj.runtime.Code;
+import semantics.decorators.TabExtended;
 import semantics.visitors.SemanticPass;
 import util.Log4JUtils;
 
 import java.io.*;
+import java.nio.file.Files;
 
 public class MJParserTest {
 
@@ -31,22 +34,47 @@ public class MJParserTest {
             Symbol s = p.parse();  //pocetak parsiranja
 
             Program program = (Program) (s.value);
-            TabAdaptor.init();
+            TabExtended.init();
+
             // ispis sintaksnog stabla
             // TODO enable/disable this using args
 //            log.info(program.toString(""));
             log.info("===================================");
 
             // ispis prepoznatih programskih konstrukcija
-            SemanticPass v = new SemanticPass();
-            program.traverseBottomUp(v);
+            SemanticPass semanticPass = SemanticPass.getInstance();
+            program.traverseBottomUp(semanticPass);
 
             log.info("===================================");
-            TabAdaptor.dump();
+            TabExtended.dump();
 
             log.info("===================================");
-            if (!p.errorDetected && v.passed()) {
+            if (!p.errorDetected && semanticPass.passed()) {
                 log.info("Parsing and semantic analysis successful!");
+
+                String outputFile = "output/program.obj";
+                File objFile = new File(outputFile);
+
+                // Check if the directory exists, if not, create it
+                File outputDirectory = objFile.getParentFile();
+                if (!outputDirectory.exists()) {
+                    if (!outputDirectory.mkdirs()) {
+                        log.error("Failed to create output directory");
+                        // Handle the failure to create the directory as needed
+                    }
+                }
+
+                if (objFile.exists() && objFile.delete()) {
+                    log.info("Regenerating file " + outputFile);
+                }
+
+                CodeGenerator codeGenerator = CodeGenerator.getInstance();
+                program.traverseBottomUp(codeGenerator);
+                Code.dataSize = semanticPass.getnVars();
+                Code.mainPc = codeGenerator.getMainPC();
+                Code.write(Files.newOutputStream(objFile.toPath()));
+
+
             } else {
                 log.error("Parsing and semantic analysis was not successful!");
             }

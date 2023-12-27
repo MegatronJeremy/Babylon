@@ -3,8 +3,8 @@ package semantics.visitors;
 import ast.*;
 import rs.etf.pp1.symboltable.concepts.Obj;
 import rs.etf.pp1.symboltable.concepts.Struct;
-import semantics.adaptors.StructAdaptor;
-import semantics.adaptors.TabAdaptor;
+import semantics.decorators.StructExtended;
+import semantics.decorators.TabExtended;
 import semantics.util.LogUtils;
 import semantics.util.ObjList;
 
@@ -20,8 +20,8 @@ public class ClassVisitor extends VisitorAdaptor {
 
     public void visit(ClassDecl classDecl) {
         // chain locals here and close scope
-        TabAdaptor.chainLocalSymbols(semanticPass.currentClass.getType()); // this does everything
-        TabAdaptor.closeScope();
+        TabExtended.chainLocalSymbols(semanticPass.currentClass.getType()); // this does everything
+        TabExtended.closeScope();
 
         semanticPass.currentClass = null;
     }
@@ -30,16 +30,16 @@ public class ClassVisitor extends VisitorAdaptor {
         String qualifiedName = semanticPass.getQualifiedNameDeclaration(className.getClassName());
 
         // create a new user-defined type
-        Struct classStruct = new StructAdaptor(Struct.Class);
+        Struct classStruct = new StructExtended(Struct.Class);
 
-        Obj classNode = TabAdaptor.insert(Obj.Type, qualifiedName, classStruct);
-        if (classNode == TabAdaptor.noObj) {
+        Obj classNode = TabExtended.insert(Obj.Type, qualifiedName, classStruct);
+        if (classNode == TabExtended.noObj) {
             LogUtils.logError("Class with name " + qualifiedName + " already declared", className);
         }
 
         // Prepare for static variable declaration
         semanticPass.currentClass = classNode;
-        TabAdaptor.openScope();
+        TabExtended.openScope();
     }
 
     public void visit(ExtendsClauseExists extendsClauseExists) {
@@ -51,16 +51,16 @@ public class ClassVisitor extends VisitorAdaptor {
             this.semanticPass.currentClass.getType().setElementType(classType);
             Collection<Obj> members = classType.getMembers();
             for (Obj obj : members) {
-                Obj cloned = TabAdaptor.insert(obj.getKind(), obj.getName(), obj.getType());
+                Obj cloned = TabExtended.insert(obj.getKind(), obj.getName(), obj.getType());
                 cloned.setLevel(obj.getLevel()); // ensure this is ok for methods
 
-                TabAdaptor.openScope();
+                TabExtended.openScope();
                 // copy locals
                 for (Obj local : obj.getLocalSymbols()) {
-                    TabAdaptor.insert(local.getKind(), local.getName(), local.getType());
+                    TabExtended.insert(local.getKind(), local.getName(), local.getType());
                 }
-                TabAdaptor.chainLocalSymbols(cloned);
-                TabAdaptor.closeScope();
+                TabExtended.chainLocalSymbols(cloned);
+                TabExtended.closeScope();
             }
         }
     }

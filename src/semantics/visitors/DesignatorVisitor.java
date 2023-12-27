@@ -4,7 +4,7 @@ import ast.*;
 import rs.etf.pp1.symboltable.concepts.Obj;
 import rs.etf.pp1.symboltable.concepts.Scope;
 import rs.etf.pp1.symboltable.concepts.Struct;
-import semantics.adaptors.TabAdaptor;
+import semantics.decorators.TabExtended;
 import semantics.util.LogUtils;
 import semantics.util.ObjList;
 import semantics.util.StructList;
@@ -23,9 +23,9 @@ public class DesignatorVisitor extends VisitorAdaptor {
     }
 
     private Obj findDesignator(String designName, SyntaxNode syntaxNode) {
-        Obj typeNode = TabAdaptor.find(designName);
+        Obj typeNode = TabExtended.find(designName);
 
-        if (typeNode == TabAdaptor.noObj) {
+        if (typeNode == TabExtended.noObj) {
             LogUtils.logError("Variable " + designName + " not declared.", syntaxNode);
         }
 
@@ -51,7 +51,7 @@ public class DesignatorVisitor extends VisitorAdaptor {
 
         Struct rType = rValue.getType().getElemType();
         for (Obj obj : designatorAssignListStmt.getDesignatorAssignList().objlist) {
-            if (obj == TabAdaptor.noObj) {
+            if (obj == TabExtended.noObj) {
                 continue;
             }
 
@@ -84,7 +84,7 @@ public class DesignatorVisitor extends VisitorAdaptor {
     }
 
     public void visit(DesignatorEmpty designatorEmpty) {
-        designatorEmpty.obj = TabAdaptor.noObj;
+        designatorEmpty.obj = TabExtended.noObj;
     }
 
     public void visit(DesignatorOpAssign designatorOpAssign) {
@@ -143,7 +143,7 @@ public class DesignatorVisitor extends VisitorAdaptor {
             if (formPars != actPars) {
                 LogUtils.logError("Expected " + formPars + " parameter(s), but got " + actPars, designatorOpCall);
 
-                designatorOpCall.obj = TabAdaptor.noObj;
+                designatorOpCall.obj = TabExtended.noObj;
                 validCall = false;
             } else {
                 int i = 0, sz = structList.size();
@@ -176,7 +176,7 @@ public class DesignatorVisitor extends VisitorAdaptor {
         }
 
         if (!validCall) {
-            designatorOpCall.obj = TabAdaptor.noObj;
+            designatorOpCall.obj = TabExtended.noObj;
         }
     }
 
@@ -215,7 +215,7 @@ public class DesignatorVisitor extends VisitorAdaptor {
 
         if (Objects.equals(design.getName(), "this")) {
             // special case
-            Scope scopeToSearch = TabAdaptor.currentScope.getOuter(); // look in outer scope (not yet chained)
+            Scope scopeToSearch = TabExtended.currentScope.getOuter(); // look in outer scope (not yet chained)
             obj = scopeToSearch.findSymbol(identifier);
         } else {
             obj = type.getMembersTable().searchKey(identifier);
@@ -238,7 +238,7 @@ public class DesignatorVisitor extends VisitorAdaptor {
         }
 
         if (obj == null) {
-            obj = TabAdaptor.noObj;
+            obj = TabExtended.noObj;
         }
 
         designatorIndOp.obj = obj;
@@ -252,7 +252,7 @@ public class DesignatorVisitor extends VisitorAdaptor {
             LogUtils.logError("Invalid array indexing operation with type " + LogUtils.structKindToString(kind)
                     + " of variable " + design.getName(), designatorIndOp);
 
-            designatorIndOp.obj = TabAdaptor.noObj;
+            designatorIndOp.obj = TabExtended.noObj;
         } else {
             // TODO see if this is good
             Struct elemType = design.getType().getElemType();
@@ -277,9 +277,9 @@ public class DesignatorVisitor extends VisitorAdaptor {
         // First look for implicit namespace and then for global namespace if not found
         String designatorName = designator.getDesignName();
         String qualifiedName = semanticPass.getQualifiedNameLookup(designatorName);
-        Obj obj = TabAdaptor.find(qualifiedName);
+        Obj obj = TabExtended.find(qualifiedName);
 
-        if (obj == TabAdaptor.noObj) {
+        if (obj == TabExtended.noObj) {
             obj = findDesignator(designatorName, designator);
         }
 
