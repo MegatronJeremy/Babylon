@@ -245,7 +245,7 @@ public class DesignatorVisitor extends VisitorAdaptor {
     }
 
     public void visit(DesignatorIndOpBracket designatorIndOp) {
-        Obj design = designatorIndOp.getDesignator().obj;
+        Obj design = designatorIndOp.getDesignatorArr().obj;
         int kind = design.getType().getKind();
 
         if (kind != Struct.Array) {
@@ -259,6 +259,10 @@ public class DesignatorVisitor extends VisitorAdaptor {
             // Declare as element object type
             designatorIndOp.obj = new Obj(Obj.Elem, design.getName(), elemType);
         }
+    }
+
+    public void visit(DesignatorArr designatorArr) {
+        designatorArr.obj = designatorArr.getDesignator().obj;
     }
 
     public void visit(DesignatorNoInd designatorNoInd) {

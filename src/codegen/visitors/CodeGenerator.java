@@ -29,6 +29,9 @@ public class CodeGenerator extends VisitorAdaptor {
     public void visit(StatementPrint statementPrint) {
         statementVisitor.visit(statementPrint);
     }
+    public void visit(StatementRead statementRead) {
+        statementVisitor.visit(statementRead);
+    }
 
     public void visit(StatementReturnExprExists statementReturnExprExists) {
         statementVisitor.visit(statementReturnExprExists);
@@ -53,9 +56,28 @@ public class CodeGenerator extends VisitorAdaptor {
     public void visit(DesignatorOpAssign designatorOpAssign) {
         designatorVisitor.visit(designatorOpAssign);
     }
+    public void visit(DesignatorOpIncrement designatorOpIncrement) {
+        designatorVisitor.visit(designatorOpIncrement);
+    }
+
+    public void visit(DesignatorOpDecrement designatorOpDecrement) {
+        designatorVisitor.visit(designatorOpDecrement);
+    }
+
+    public void visit(DesignatorIndOpDot designatorIndOpDot) {
+        designatorVisitor.visit(designatorIndOpDot);
+    }
+
+    public void visit(DesignatorArr designatorArr) {
+        designatorVisitor.visit(designatorArr);
+    }
 
     public void visit(FactorDesignator factorDesignator) {
         exprVisitor.visit(factorDesignator);
+    }
+
+    public void visit(FactorNewArray factorNewArray) {
+        exprVisitor.visit(factorNewArray);
     }
 
     public void visit(ExprAddop exprAddop) {

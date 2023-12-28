@@ -3,6 +3,7 @@ package codegen.visitors;
 import ast.*;
 import rs.etf.pp1.mj.runtime.Code;
 import rs.etf.pp1.symboltable.concepts.Obj;
+import rs.etf.pp1.symboltable.concepts.Struct;
 
 public class ExprVisitor extends VisitorAdaptor {
     public void visit(FactorDesignator factorDesignator) {
@@ -33,4 +34,15 @@ public class ExprVisitor extends VisitorAdaptor {
     public void visit(FactorBoolConst factorBoolConst) {
         Code.loadConst(factorBoolConst.getValue() ? 1 : 0);
     }
+
+    public void visit(FactorNewArray factorNewArray) {
+        Struct type = factorNewArray.getType().struct;
+        Code.put(Code.newarray);
+        if (type.getKind() == Struct.Char) {
+            Code.put(0);
+        } else {
+            Code.put(1);
+        }
+    }
+
 }

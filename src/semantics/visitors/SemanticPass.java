@@ -299,6 +299,10 @@ public class SemanticPass extends VisitorAdaptor {
         designatorVisitor.visit(designatorIndOp);
     }
 
+    public void visit(DesignatorArr designatorArr) {
+        designatorVisitor.visit(designatorArr);
+    }
+
     public void visit(DesignatorNoInd designatorNoInd) {
         designatorVisitor.visit(designatorNoInd);
     }

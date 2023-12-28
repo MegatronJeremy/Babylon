@@ -96,7 +96,7 @@ nonterminal StatementList, Statement, StatementScopedOpen, ElseStatement;
 nonterminal ForEnter, ForDesignStmtListOpt, StatementReturnExpr, StatementPrintNumConst, ForDesignStmtList;
 
 nonterminal DesignatorStatement;
-nonterminal rs.etf.pp1.symboltable.concepts.Obj Designator, DesignatorName, DesignatorOpCall, DesignatorOpt;
+nonterminal rs.etf.pp1.symboltable.concepts.Obj Designator, DesignatorArr, DesignatorName, DesignatorOpCall, DesignatorOpt;
 nonterminal semantics.util.ObjList DesignatorAssignList;
 nonterminal DesignatorOperation;
 
@@ -344,8 +344,11 @@ DesignatorOpCall ::= (DesignatorOpCall) Designator LPAREN ActParsOpt RPAREN
 // Check if the type is a class for the first one (TODO)
 // Check if the type is an array for the second one
 Designator ::= (DesignatorIndOpDot) Designator PERIOD IDENT:identifier
-    | (DesignatorIndOpBracket) Designator LBRACKET Expr RBRACKET
+    | (DesignatorIndOpBracket) DesignatorArr LBRACKET Expr RBRACKET
     | (DesignatorNoInd) DesignatorName
+    ;
+
+DesignatorArr ::= (DesignatorArr) Designator
     ;
 
 // Return the object with correct namespace and name
