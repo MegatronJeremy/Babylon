@@ -11,7 +11,7 @@ public class ExprVisitor extends VisitorAdaptor {
     }
 
     public void visit(ExprAddop exprAddop) {
-        Code.put(Code.add);
+        Code.put(exprAddop.getAddop().integer);
     }
 
     public void visit(ExprNeg exprNeg) {
@@ -19,7 +19,7 @@ public class ExprVisitor extends VisitorAdaptor {
     }
 
     public void visit(TermMulop termMulop) {
-        Code.put(Code.mul);
+        Code.put(termMulop.getMulop().integer);
     }
 
     public void visit(FactorNumConst factorNumConst) {

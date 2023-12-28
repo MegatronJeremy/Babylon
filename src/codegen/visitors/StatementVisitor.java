@@ -2,6 +2,7 @@ package codegen.visitors;
 
 import ast.StatementPrint;
 import ast.StatementReturn;
+import ast.StatementReturnExprExists;
 import ast.VisitorAdaptor;
 import rs.etf.pp1.mj.runtime.Code;
 import rs.etf.pp1.symboltable.Tab;
@@ -21,7 +22,7 @@ public class StatementVisitor extends VisitorAdaptor {
         }
     }
 
-    public void visit(StatementReturn statementReturn) {
+    public void visit(StatementReturnExprExists statementReturnExprExists) {
         Code.put(Code.exit);
         Code.put(Code.return_);
     }

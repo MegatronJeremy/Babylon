@@ -30,6 +30,10 @@ public class CodeGenerator extends VisitorAdaptor {
         statementVisitor.visit(statementPrint);
     }
 
+    public void visit(StatementReturnExprExists statementReturnExprExists) {
+        statementVisitor.visit(statementReturnExprExists);
+    }
+
     public void visit(ConstDecl constDecl) {
         constDeclVisitor.visit(constDecl);
     }

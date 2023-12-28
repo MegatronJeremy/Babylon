@@ -106,8 +106,8 @@ nonterminal CondFactOpt;
 
 nonterminal rs.etf.pp1.symboltable.concepts.Struct Expr, Term, Factor;
 
-nonterminal Label, Assignop, Addop, Mulop;
-nonterminal java.lang.String Relop;
+nonterminal Label, Assignop;
+nonterminal java.lang.Integer Addop, Mulop, Relop;
 
 precedence left ELSE;
 

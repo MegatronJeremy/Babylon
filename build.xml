@@ -92,10 +92,19 @@
         </java>
     </target>
 
-    <target name="run-obj">
+    <target name="run-obj-dbg">
         <java classname="rs.etf.pp1.mj.runtime.Run">
             <arg value="${out-file-path}"/>
             <arg value="-debug"/>
+            <classpath>
+                <pathelement location="lib/mj-runtime-1.1.jar"/>
+            </classpath>
+        </java>
+    </target>
+
+    <target name="run-obj">
+        <java classname="rs.etf.pp1.mj.runtime.Run">
+            <arg value="${out-file-path}"/>
             <classpath>
                 <pathelement location="lib/mj-runtime-1.1.jar"/>
             </classpath>

@@ -1,6 +1,8 @@
 package semantics.visitors;
 
 import ast.*;
+import codegen.visitors.ExprCodeVisitor;
+import rs.etf.pp1.mj.runtime.Code;
 import rs.etf.pp1.symboltable.concepts.Struct;
 import semantics.decorators.TabExtended;
 import semantics.util.LogUtils;
@@ -37,8 +39,7 @@ public class ExprVisitor extends VisitorAdaptor {
     public void visit(CondFactRelop condFactRelop) {
         Struct lType = condFactRelop.getExpr().struct;
         Struct rType = condFactRelop.getExpr1().struct;
-
-        String relationOp = condFactRelop.getRelop().string;
+        Integer relationOp = condFactRelop.getRelop().integer;
 
         boolean errorFound = false;
 
@@ -50,7 +51,7 @@ public class ExprVisitor extends VisitorAdaptor {
 
             errorFound = true;
         } else if ((lType.getKind() == Struct.Class || lType.getKind() == Struct.Array) &&
-                !Objects.equals(relationOp, "==") && !Objects.equals(relationOp, "!=")) {
+                !Objects.equals(relationOp, Code.eq) && !Objects.equals(relationOp, Code.ne)) {
             LogUtils.logError("Incompatible relation operator for type "
                             + LogUtils.structKindToString(lType.getKind()),
                     condFactRelop);
@@ -166,6 +167,4 @@ public class ExprVisitor extends VisitorAdaptor {
     public void visit(FactorExpr factorExpr) {
         factorExpr.struct = factorExpr.getExpr().struct;
     }
-
-
 }
