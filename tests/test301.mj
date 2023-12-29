@@ -37,15 +37,17 @@ namespace Nizovi{
 		Nizovi::niz[Nizovi::niz[Konstante::jedan]] = Nizovi::niz[Nizovi::niz[0]] * 3; // niz[2] = 6
 		bodovi = Nizovi::niz[2]/Nizovi::niz[0]; // bodovi = 6 / 1 = 6
 		print(bodovi); // 6
-		print(Nizovi::niz[2]); // 3
+		print(chr(Nizovi::niz[2])); // 6 as char (ACK)
 			
 		
 		Nizovi::nizch = new char[3];
 		Nizovi::nizch[0] = 'a';
 		Nizovi::nizch[Konstante::jedan] = 'b';
 		Nizovi::nizch[Konstante::pet - 3] = 'c';
-		print(Nizovi::nizch[1]);
-		print(Nizovi::nizch[Konstante::jedan * 2]);
+		print(ord(Nizovi::nizch[1])); // 'b' as int (98)
+		print(Nizovi::nizch[Konstante::jedan * 2]); // 'c'
+
+		print(len(Nizovi::nizch));  // 3
 			
 		a=1;
 		read(bodovi);

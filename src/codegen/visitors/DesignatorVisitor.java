@@ -8,14 +8,26 @@ import rs.etf.pp1.symboltable.concepts.Obj;
 public class DesignatorVisitor extends VisitorAdaptor {
 
     public void visit(DesignatorOpCall designatorOpCall) {
+        // ord, chr and len are inserted as inline methods
         Obj obj = designatorOpCall.obj;
-        int offset = obj.getAdr() - Code.pc; // from the current instruction
-        Code.put(Code.call);
+        switch (obj.getName()) {
+            case "ord":
+            case "chr":
+                // do nothing - implicitly cast
+                break;
+            case "len":
+                Code.put(Code.arraylength);
+                break;
+            default:
+                // actual function call generation
+                int offset = obj.getAdr() - Code.pc; // from the current instruction
+                Code.put(Code.call);
 
-        Code.put2(offset);
+                Code.put2(offset);
 
-        if (obj.getType() != Tab.noType) {
-            Code.put(Code.pop);
+                if (obj.getType() != Tab.noType) {
+                    Code.put(Code.pop);
+                }
         }
     }
 
@@ -42,6 +54,7 @@ public class DesignatorVisitor extends VisitorAdaptor {
         Obj cls = designatorIndOpDot.getDesignator().obj;
         Code.load(cls);
     }
+
     public void visit(DesignatorArr designatorArr) {
         Obj arr = designatorArr.getDesignator().obj;
         Code.load(arr);

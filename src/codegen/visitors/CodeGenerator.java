@@ -29,6 +29,7 @@ public class CodeGenerator extends VisitorAdaptor {
     public void visit(StatementPrint statementPrint) {
         statementVisitor.visit(statementPrint);
     }
+
     public void visit(StatementRead statementRead) {
         statementVisitor.visit(statementRead);
     }
@@ -56,6 +57,7 @@ public class CodeGenerator extends VisitorAdaptor {
     public void visit(DesignatorOpAssign designatorOpAssign) {
         designatorVisitor.visit(designatorOpAssign);
     }
+
     public void visit(DesignatorOpIncrement designatorOpIncrement) {
         designatorVisitor.visit(designatorOpIncrement);
     }
