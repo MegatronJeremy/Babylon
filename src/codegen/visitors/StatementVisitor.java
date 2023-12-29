@@ -6,13 +6,42 @@ import rs.etf.pp1.symboltable.Tab;
 import rs.etf.pp1.symboltable.concepts.Obj;
 import rs.etf.pp1.symboltable.concepts.Struct;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class StatementVisitor extends VisitorAdaptor {
 
+    private Integer currentRelop;
+
+    private List<Integer> currentFixupList = new ArrayList<>();
+
     public void visit(CondFactRelop condFactRelop) {
-        int relopKind = condFactRelop.getRelop().integer;
-        Code.putFalseJump(relopKind, 0);
-        int adr = Code.pc - 2;
+        SyntaxNode secondParent = condFactRelop.getParent().getParent();
+        SyntaxNode thirdParent = secondParent.getParent();
+        if (thirdParent.getClass() == ConditionIf.class) {
+            // this is the last node before if body, jump to else needs to be put here
+
+
+        } else if (secondParent.getClass() == ConditionCondTerm.class || secondParent.getClass() == ConditionOR.class) {
+            // this is the last node in the hierarchy, generate true jump
+        } else {
+            // put a false jump here and fixup later
+        }
     }
+
+    public void visit(CondFactSingle condFactSingle) {
+        currentRelop = Code.eq;
+    }
+
+    public void visit(CondTermFact condTermFact) {
+        Code.putFalseJump(currentRelop, 0);
+        currentFixupList.add(Code.pc - 2);
+    }
+
+    public void visit(CondTermAND condTermAND) {
+
+    }
+
 
     public void visit(StatementPrint statementPrint) {
         Struct type = statementPrint.getExpr().struct;

@@ -1,0 +1,2 @@
+run-obj: 	java -cp lib/mj-runtime-1.1.jar rs.etf.pp1.mj.runtime.Run output/program.obj
+run-obj-dbg: 	java -cp lib/mj-runtime-1.1.jar rs.etf.pp1.mj.runtime.Run output/program.obj -debug

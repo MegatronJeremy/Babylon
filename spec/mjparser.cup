@@ -102,6 +102,7 @@ nonterminal DesignatorOperation;
 
 nonterminal semantics.util.StructList ActPars, ActParsOpt;
 nonterminal rs.etf.pp1.symboltable.concepts.Struct Condition, CondTerm, CondFact;
+nonterminal ConditionIf;
 nonterminal CondFactOpt;
 
 nonterminal rs.etf.pp1.symboltable.concepts.Struct Expr, Term, Factor;
@@ -370,6 +371,7 @@ ActParsOpt ::= (ActParsExists) ActPars
     ;
 
 // Check nothing here
+// If a single Condition is true, jump to if body
 Condition ::= (ConditionOR) Condition OR CondTerm
     | (ConditionCondTerm) CondTerm
     | (ConditionError) error:l
@@ -377,12 +379,15 @@ Condition ::= (ConditionOR) Condition OR CondTerm
     ;
 
 // Check nothing here
+// If a single value is false, jump to next condition (or to the end)
 CondTerm ::= (CondTermAND) CondTerm AND CondFact
     | (CondTermFact) CondFact
     ;
 
 // Check if expression types compatible
 // Class or Array can only have != and ==
+// Code generation: just return Relop type here
+// If CondFactSingle relop type is eq? It needs to be boolean though...
 CondFact ::= (CondFactRelop) Expr Relop Expr
     | (CondFactSingle) Expr
     ;
