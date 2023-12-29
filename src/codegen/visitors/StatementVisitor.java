@@ -8,15 +8,21 @@ import rs.etf.pp1.symboltable.concepts.Struct;
 
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.Stack;
 
 public class StatementVisitor extends VisitorAdaptor {
 
-    private final Queue<Integer> nextCondFixupList = new LinkedList<>();
+    private final Stack<Queue<Integer>> nextCondFixupListStack = new Stack<>();
     private final Queue<Integer> ifBodyFixupList = new LinkedList<>();
+    private final Stack<Integer> ifFixupStack = new Stack<>();
+    private final Stack<Integer> elseFixupStack = new Stack<>();
+    private final Stack<Queue<Integer>> forEndFixupListStack = new Stack<>();
+    private final Stack<Integer> forBodyAddrStack = new Stack<>();
     boolean lastANDStatement = false;
     private Integer currentRelop;
-    private Integer elseFixup;
-    private Integer ifFixup;
+    private Integer forBodyFixup;
+    private CondFact forCondFact;
+
 
     private void visitCondTerm(CondTerm condTerm) {
         // centralized logic for putting jumps here
@@ -26,7 +32,7 @@ public class StatementVisitor extends VisitorAdaptor {
         if (parent.getClass() != ConditionCondTerm.class && parent.getClass() != ConditionOR.class) {
             // put false jump here
             Code.putFalseJump(currentRelop, 0);
-            nextCondFixupList.add(Code.pc - 2);
+            nextCondFixupListStack.peek().add(Code.pc - 2);
         } else {
             SyntaxNode secondParent = parent.getParent();
 
@@ -39,9 +45,14 @@ public class StatementVisitor extends VisitorAdaptor {
             } else {
                 // last one in or statement list
                 Code.putFalseJump(currentRelop, 0);
-                elseFixup = Code.pc - 2; // at least this must always exist
+                elseFixupStack.push(Code.pc - 2); // at least this must always exist
             }
         }
+    }
+
+    public void visit(StatementIfElseEntry statementIfElseEntry) {
+        // create new list
+        nextCondFixupListStack.push(new LinkedList<>());
     }
 
     public void visit(ConditionIf conditionIf) {
@@ -54,14 +65,28 @@ public class StatementVisitor extends VisitorAdaptor {
 
     public void visit(ElseStatementEntry elseStatementEntry) {
         Code.putJump(0);
-        ifFixup = Code.pc - 2; // fixup for jumping over else statement
+        ifFixupStack.push(Code.pc - 2);
+        // fixup for jumping over else statement
+        // need to use a list because of nested if/else blocks
 
-        Code.fixup(elseFixup);
+        Code.fixup(elseFixupStack.pop()); // stack because of recursion
     }
 
     public void visit(StatementIfElse statementIfElse) {
         // done with everything -> just jump over else statement
-        Code.fixup(ifFixup);
+        if (!ifFixupStack.isEmpty()) {
+            Integer nextIfFixup = ifFixupStack.pop();
+            Code.fixup(nextIfFixup);
+        } else {
+            throw new RuntimeException("Fixup list should not be empty!");
+        }
+
+        // ALSO fixup all leftover AND false jump conditions
+        Queue<Integer> nextCondFixupList = nextCondFixupListStack.pop();
+        while (!nextCondFixupList.isEmpty()) {
+            Integer nextAddr = nextCondFixupList.poll();
+            Code.fixup(nextAddr);
+        }
     }
 
     public void visit(CondFactRelop condFactRelop) {
@@ -69,6 +94,8 @@ public class StatementVisitor extends VisitorAdaptor {
     }
 
     public void visit(CondFactSingle condFactSingle) {
+        // compare with zero
+        Code.loadConst(0);
         currentRelop = Code.eq;
     }
 
@@ -83,12 +110,85 @@ public class StatementVisitor extends VisitorAdaptor {
     public void visit(CondFactIfEntry condFactIfEntry) {
         // fixup
         if (lastANDStatement) {
+            // Only PEAK here - not done yet
+            Queue<Integer> nextCondFixupList = nextCondFixupListStack.peek();
             while (!nextCondFixupList.isEmpty()) {
                 Integer nextAddr = nextCondFixupList.poll();
                 Code.fixup(nextAddr);
             }
             lastANDStatement = false;
         }
+    }
+
+    public void visit(CondFactExists condFactExists) {
+        Code.putFalseJump(currentRelop, 0); // first time check
+        forEndFixupListStack.peek().add(Code.pc - 2);
+
+        // jump into for body
+        Code.putJump(0);
+        forBodyFixup = Code.pc - 2;
+
+        // setup the condition node for regeneration
+        forCondFact = condFactExists.getCondFact();
+
+        // Jump after to check for condition and do post-op
+        forBodyAddrStack.push(Code.pc);
+    }
+
+    public void visit(CondFactEmpty condFactEmpty) {
+        // jump into for body
+        Code.putJump(0);
+        forBodyFixup = Code.pc - 2;
+
+        forCondFact = null;
+
+        // Jump after to check for condition and do post-op
+        forBodyAddrStack.add(Code.pc);
+    }
+
+    public void visit(ForEnter forEnter) {
+        // make new list
+        forEndFixupListStack.push(new LinkedList<>());
+    }
+
+    public void visit(ForPostOpExit forPostOpExit) {
+        // regenerate the condition
+        if (forCondFact != null) {
+            forCondFact.traverseBottomUp(CodeGenerator.getInstance());
+
+            Code.putFalseJump(currentRelop, 0);
+            forEndFixupListStack.peek().add(Code.pc - 2);
+        }
+        // else there is no condition
+    }
+
+    public void visit(ForBodyEntry forBodyEntry) {
+        Code.fixup(forBodyFixup);
+    }
+
+    public void visit(StatementFor statementFor) {
+        // Use stacks here because of recursion
+
+        // put unconditional jump to check
+        Code.putJump(forBodyAddrStack.pop());
+
+        // fixup addr for end of for statement
+        Queue<Integer> forEndFixupList = forEndFixupListStack.pop();
+        while (!forEndFixupList.isEmpty()) {
+            Integer nextAddr = forEndFixupList.poll();
+            Code.fixup(nextAddr);
+        }
+    }
+
+    public void visit(StatementBreak statementBreak) {
+        // jump out
+        Code.putJump(0);
+        forEndFixupListStack.peek().add(Code.pc - 2);
+    }
+
+    public void visit(StatementContinue statementContinue) {
+        // jump to start
+        Code.putJump(forBodyAddrStack.peek());
     }
 
     public void visit(StatementPrint statementPrint) {
@@ -98,7 +198,7 @@ public class StatementVisitor extends VisitorAdaptor {
             Code.loadConst(5);
             Code.put(Code.print);
         } else {
-            Code.loadConst(2);
+            Code.loadConst(1);
             Code.put(Code.bprint);
         }
     }

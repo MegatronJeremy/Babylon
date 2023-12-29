@@ -22,18 +22,18 @@ public class MJParserTest {
     public static void main(String[] args) throws Exception {
         Logger log = Logger.getLogger(MJParserTest.class);
 
-        Reader br = null;
+        Reader bufferedReader = null;
         try {
             File sourceCode = new File(args[0]);
             log.info("Compiling source file: " + sourceCode.getAbsolutePath());
 
-            br = new BufferedReader(new FileReader(sourceCode));
-            Yylex lexer = new Yylex(br);
+            bufferedReader = new BufferedReader(new FileReader(sourceCode));
+            Yylex lexer = new Yylex(bufferedReader);
 
-            MJParser p = new MJParser(lexer);
-            Symbol s = p.parse();  //pocetak parsiranja
+            MJParser parser = new MJParser(lexer);
+            Symbol symbol = parser.parse();  //pocetak parsiranja
 
-            Program program = (Program) (s.value);
+            Program program = (Program) (symbol.value);
             TabExtended.init();
 
             // ispis sintaksnog stabla
@@ -49,7 +49,7 @@ public class MJParserTest {
             TabExtended.dump();
 
             log.info("===================================");
-            if (!p.errorDetected && semanticPass.passed()) {
+            if (!lexer.errorDetected && !parser.errorDetected && semanticPass.passed()) {
                 log.info("Parsing and semantic analysis successful!");
 
                 String outputFile = "output/program.obj";
@@ -79,8 +79,8 @@ public class MJParserTest {
                 log.error("Parsing and semantic analysis was not successful!");
             }
         } finally {
-            if (br != null) try {
-                br.close();
+            if (bufferedReader != null) try {
+                bufferedReader.close();
             } catch (IOException e1) {
                 log.error(e1.getMessage(), e1);
             }

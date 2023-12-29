@@ -26,6 +26,10 @@ public class CodeGenerator extends VisitorAdaptor {
         return mainPC;
     }
 
+    public void visit(StatementIfElseEntry statementIfElseEntry) {
+        statementVisitor.visit(statementIfElseEntry);
+    }
+
     public void visit(ConditionIf conditionIf) {
         statementVisitor.visit(conditionIf);
     }
@@ -58,7 +62,6 @@ public class CodeGenerator extends VisitorAdaptor {
         statementVisitor.visit(condTermAND);
     }
 
-
     public void visit(StatementPrint statementPrint) {
         statementVisitor.visit(statementPrint);
     }
@@ -69,6 +72,38 @@ public class CodeGenerator extends VisitorAdaptor {
 
     public void visit(StatementReturnExprExists statementReturnExprExists) {
         statementVisitor.visit(statementReturnExprExists);
+    }
+
+    public void visit(CondFactExists condFactExists) {
+        statementVisitor.visit(condFactExists);
+    }
+
+    public void visit(CondFactEmpty condFactEmpty) {
+        statementVisitor.visit(condFactEmpty);
+    }
+
+    public void visit(ForEnter forEnter) {
+        statementVisitor.visit(forEnter);
+    }
+
+    public void visit(ForBodyEntry forBodyEntry) {
+        statementVisitor.visit(forBodyEntry);
+    }
+
+    public void visit(ForPostOpExit forPostOpExit) {
+        statementVisitor.visit(forPostOpExit);
+    }
+
+    public void visit(StatementFor statementFor) {
+        statementVisitor.visit(statementFor);
+    }
+
+    public void visit(StatementBreak statementBreak) {
+        statementVisitor.visit(statementBreak);
+    }
+
+    public void visit(StatementContinue statementContinue) {
+        statementVisitor.visit(statementContinue);
     }
 
     public void visit(ConstDecl constDecl) {

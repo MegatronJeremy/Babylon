@@ -93,7 +93,7 @@ nonterminal FormParsOpt, FormParsList;
 nonterminal rs.etf.pp1.symboltable.concepts.Struct Type, MethodType;
 
 nonterminal StatementList, Statement, StatementScopedOpen, ElseStatement, ElseStatementEntry;
-nonterminal ForEnter, ForDesignStmtListOpt, StatementReturnExpr, StatementPrintNumConst, ForDesignStmtList;
+nonterminal ForEnter, ForBodyEntry, ForPostOpExit, ForDesignStmtListOpt, StatementReturnExpr, StatementPrintNumConst, ForDesignStmtList;
 
 nonterminal DesignatorStatement;
 nonterminal rs.etf.pp1.symboltable.concepts.Obj Designator, DesignatorArr, DesignatorName, DesignatorOpCall, DesignatorOpt;
@@ -102,7 +102,7 @@ nonterminal DesignatorOperation;
 
 nonterminal semantics.util.StructList ActPars, ActParsOpt;
 nonterminal rs.etf.pp1.symboltable.concepts.Struct Condition, CondTerm, CondFact, CondFactIf;
-nonterminal ConditionIf, CondFactIfEntry;
+nonterminal StatementIfElseEntry, ConditionIf, CondFactIfEntry;
 nonterminal CondFactOpt;
 
 nonterminal rs.etf.pp1.symboltable.concepts.Struct Expr, Term, Factor;
@@ -274,16 +274,19 @@ StatementList ::= (StatementListExists) StatementList Statement
 
 // TODO do if/for constructs later
 Statement ::= (StatementDesignator) DesignatorStatement SEMI
-    | (StatementIfElse) IF LPAREN ConditionIf RPAREN Statement ElseStatementEntry ElseStatement
+    | (StatementIfElse) StatementIfElseEntry IF LPAREN ConditionIf RPAREN Statement ElseStatementEntry ElseStatement
     | (StatementBreak) BREAK SEMI
     | (StatementContinue) CONTINUE SEMI
     | (StatementReturn) RETURN StatementReturnExpr SEMI
     | (StatementRead) READ LPAREN Designator RPAREN SEMI
     | (StatementPrint) PRINT LPAREN Expr StatementPrintNumConst RPAREN SEMI
-    | (StatementFor) FOR ForEnter LPAREN ForDesignStmtListOpt SEMI CondFactOpt SEMI ForDesignStmtListOpt RPAREN Statement
+    | (StatementFor) FOR ForEnter LPAREN ForDesignStmtListOpt SEMI CondFactOpt SEMI ForDesignStmtListOpt ForPostOpExit RPAREN ForBodyEntry Statement
     | (StatementScoped) LBRACE StatementScopedOpen StatementList RBRACE
     | (StatementError) error SEMI:l
     {: parser.report_error("Badly formed designator statement on line " + lleft, null); :}
+    ;
+
+StatementIfElseEntry ::= (StatementIfElseEntry) 
     ;
 
 ConditionIf ::= (ConditionIf) Condition
@@ -294,6 +297,12 @@ ElseStatementEntry ::= (ElseStatementEntry)
 
 ElseStatement ::= (ElseStatementExists) ELSE Statement
     | (ElseStatementEmpty)
+    ;
+
+ForBodyEntry ::= (ForBodyEntry) 
+    ;
+
+ForPostOpExit ::= (ForPostOpExit) 
     ;
 
 StatementReturnExpr ::= (StatementReturnExprExists) Expr

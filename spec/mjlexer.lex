@@ -1,10 +1,15 @@
 package mjparser;
 
 import java_cup.runtime.Symbol;
+import org.apache.log4j.*;
 
 %%
 
 %{
+    boolean errorDetected = false;
+
+   	Logger log = Logger.getLogger(getClass());
+
     // token position info
     private Symbol NewSymbol(int type) {
         return new Symbol(type, yyline+1, yycolumn);
@@ -15,6 +20,10 @@ import java_cup.runtime.Symbol;
         return new Symbol(type, yyline+1, yycolumn, value);
     }
 
+    public void report_error(String message) {
+        errorDetected = true;
+        log.error(message);
+    }
 %}
 
 %cup
@@ -103,4 +112,4 @@ import java_cup.runtime.Symbol;
 <COMMENT> [^\r\n]*    { /* Ignore characters within a comment */ }
 
 // Log errors
-. { System.err.println("Lexical error ("+yytext()+") in line "+(yyline+1)); }
+. { report_error("Lexical error ("+yytext()+") in line "+(yyline+1)); }
