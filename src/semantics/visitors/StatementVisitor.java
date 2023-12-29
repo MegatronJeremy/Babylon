@@ -19,14 +19,14 @@ public class StatementVisitor extends VisitorAdaptor {
         this.semanticPass = semanticPass;
     }
 
-    public void visit(StatementIfElse statementIfElse) {
-        int conditionKind = statementIfElse.getCondition().struct.getKind();
+    public void visit(ConditionIf conditionIf) {
+        int conditionKind = conditionIf.getCondition().struct.getKind();
 
         if (conditionKind != Struct.Bool) {
             LogUtils.logError("If statement condition type "
                             + LogUtils.structKindToString(conditionKind)
                             + " is not allowed",
-                    statementIfElse);
+                    conditionIf);
         }
     }
 

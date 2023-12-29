@@ -273,7 +273,7 @@ StatementList ::= (StatementListExists) StatementList Statement
 
 // TODO do if/for constructs later
 Statement ::= (StatementDesignator) DesignatorStatement SEMI
-    | (StatementIfElse) IF LPAREN Condition RPAREN Statement ElseStatement
+    | (StatementIfElse) IF LPAREN ConditionIf RPAREN Statement ElseStatement
     | (StatementBreak) BREAK SEMI
     | (StatementContinue) CONTINUE SEMI
     | (StatementReturn) RETURN StatementReturnExpr SEMI
@@ -283,6 +283,9 @@ Statement ::= (StatementDesignator) DesignatorStatement SEMI
     | (StatementScoped) LBRACE StatementScopedOpen StatementList RBRACE
     | (StatementError) error SEMI:l
     {: parser.report_error("Badly formed designator statement on line " + lleft, null); :}
+    ;
+
+ConditionIf ::= (ConditionIf) Condition
     ;
 
 ElseStatement ::= (ElseStatementExists) ELSE Statement
@@ -384,7 +387,7 @@ CondFact ::= (CondFactRelop) Expr Relop Expr
     | (CondFactSingle) Expr
     ;
 
-// TODO This is for For statement
+// This is for For statement
 CondFactOpt ::= (CondFactExists) CondFact
     | (CondFactEmpty)
     ;

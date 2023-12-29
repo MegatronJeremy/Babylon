@@ -8,6 +8,12 @@ import rs.etf.pp1.symboltable.concepts.Struct;
 
 public class StatementVisitor extends VisitorAdaptor {
 
+    public void visit(CondFactRelop condFactRelop) {
+        int relopKind = condFactRelop.getRelop().integer;
+        Code.putFalseJump(relopKind, 0);
+        int adr = Code.pc - 2;
+    }
+
     public void visit(StatementPrint statementPrint) {
         Struct type = statementPrint.getExpr().struct;
 

@@ -2,7 +2,6 @@ package semantics.visitors;
 
 import ast.*;
 import codegen.visitors.ExprCodeVisitor;
-import rs.etf.pp1.mj.runtime.Code;
 import rs.etf.pp1.symboltable.concepts.Obj;
 import rs.etf.pp1.symboltable.concepts.Scope;
 import semantics.decorators.TabExtended;
@@ -215,8 +214,8 @@ public class SemanticPass extends VisitorAdaptor {
         methodVisitor.visit(actParsSingle);
     }
 
-    public void visit(StatementIfElse statementIfElse) {
-        statementVisitor.visit(statementIfElse);
+    public void visit(ConditionIf conditionIf) {
+        statementVisitor.visit(conditionIf);
     }
 
     public void visit(StatementBreak statementBreak) {
@@ -394,15 +393,48 @@ public class SemanticPass extends VisitorAdaptor {
     public void visit(FactorExpr factorExpr) {
         exprVisitor.visit(factorExpr);
     }
-    public void visit(RelopEqual relopEqual) {exprCodeVisitor.visit(relopEqual);}
-    public void visit(RelopNotEqual relopNotEqual) {exprCodeVisitor.visit(relopNotEqual);}
-    public void visit(RelopGreater relopGreater) {exprCodeVisitor.visit(relopGreater);}
-    public void visit(RelopGreaterEqual relopGreaterEqual) {exprCodeVisitor.visit(relopGreaterEqual );}
-    public void visit(RelopLess relopLess) {exprCodeVisitor.visit(relopLess);}
-    public void visit(RelopLessEqual relopLessEqual) {exprCodeVisitor.visit(relopLessEqual);}
-    public void visit(AddopPlus addopPlus) {exprCodeVisitor.visit(addopPlus);}
-    public void visit(AddopMinus addopMinus) {exprCodeVisitor.visit(addopMinus);}
-    public void visit(MulopMultiply mulopMultiply) {exprCodeVisitor.visit(mulopMultiply);}
-    public void visit(MulopDivide mulopDivide) {exprCodeVisitor.visit(mulopDivide);}
-    public void visit(MulopModulo mulopModulo){exprCodeVisitor.visit(mulopModulo);}
+
+    public void visit(RelopEqual relopEqual) {
+        exprCodeVisitor.visit(relopEqual);
+    }
+
+    public void visit(RelopNotEqual relopNotEqual) {
+        exprCodeVisitor.visit(relopNotEqual);
+    }
+
+    public void visit(RelopGreater relopGreater) {
+        exprCodeVisitor.visit(relopGreater);
+    }
+
+    public void visit(RelopGreaterEqual relopGreaterEqual) {
+        exprCodeVisitor.visit(relopGreaterEqual);
+    }
+
+    public void visit(RelopLess relopLess) {
+        exprCodeVisitor.visit(relopLess);
+    }
+
+    public void visit(RelopLessEqual relopLessEqual) {
+        exprCodeVisitor.visit(relopLessEqual);
+    }
+
+    public void visit(AddopPlus addopPlus) {
+        exprCodeVisitor.visit(addopPlus);
+    }
+
+    public void visit(AddopMinus addopMinus) {
+        exprCodeVisitor.visit(addopMinus);
+    }
+
+    public void visit(MulopMultiply mulopMultiply) {
+        exprCodeVisitor.visit(mulopMultiply);
+    }
+
+    public void visit(MulopDivide mulopDivide) {
+        exprCodeVisitor.visit(mulopDivide);
+    }
+
+    public void visit(MulopModulo mulopModulo) {
+        exprCodeVisitor.visit(mulopModulo);
+    }
 }
