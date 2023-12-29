@@ -92,7 +92,7 @@ nonterminal FormParsOpt, FormParsList;
 
 nonterminal rs.etf.pp1.symboltable.concepts.Struct Type, MethodType;
 
-nonterminal StatementList, Statement, StatementScopedOpen, ElseStatement;
+nonterminal StatementList, Statement, StatementScopedOpen, ElseStatement, ElseStatementEntry;
 nonterminal ForEnter, ForDesignStmtListOpt, StatementReturnExpr, StatementPrintNumConst, ForDesignStmtList;
 
 nonterminal DesignatorStatement;
@@ -101,8 +101,8 @@ nonterminal semantics.util.ObjList DesignatorAssignList;
 nonterminal DesignatorOperation;
 
 nonterminal semantics.util.StructList ActPars, ActParsOpt;
-nonterminal rs.etf.pp1.symboltable.concepts.Struct Condition, CondTerm, CondFact;
-nonterminal ConditionIf;
+nonterminal rs.etf.pp1.symboltable.concepts.Struct Condition, CondTerm, CondFact, CondFactIf;
+nonterminal ConditionIf, CondFactIfEntry;
 nonterminal CondFactOpt;
 
 nonterminal rs.etf.pp1.symboltable.concepts.Struct Expr, Term, Factor;
@@ -274,7 +274,7 @@ StatementList ::= (StatementListExists) StatementList Statement
 
 // TODO do if/for constructs later
 Statement ::= (StatementDesignator) DesignatorStatement SEMI
-    | (StatementIfElse) IF LPAREN ConditionIf RPAREN Statement ElseStatement
+    | (StatementIfElse) IF LPAREN ConditionIf RPAREN Statement ElseStatementEntry ElseStatement
     | (StatementBreak) BREAK SEMI
     | (StatementContinue) CONTINUE SEMI
     | (StatementReturn) RETURN StatementReturnExpr SEMI
@@ -287,6 +287,9 @@ Statement ::= (StatementDesignator) DesignatorStatement SEMI
     ;
 
 ConditionIf ::= (ConditionIf) Condition
+    ;
+
+ElseStatementEntry ::= (ElseStatementEntry) 
     ;
 
 ElseStatement ::= (ElseStatementExists) ELSE Statement
@@ -380,8 +383,14 @@ Condition ::= (ConditionOR) Condition OR CondTerm
 
 // Check nothing here
 // If a single value is false, jump to next condition (or to the end)
-CondTerm ::= (CondTermAND) CondTerm AND CondFact
-    | (CondTermFact) CondFact
+CondTerm ::= (CondTermAND) CondTerm AND CondFactIf
+    | (CondTermFact) CondFactIf
+    ;
+
+CondFactIf ::= (CondFactIf) CondFactIfEntry CondFact
+    ;
+
+CondFactIfEntry ::= (CondFactIfEntry) 
     ;
 
 // Check if expression types compatible

@@ -26,6 +26,39 @@ public class CodeGenerator extends VisitorAdaptor {
         return mainPC;
     }
 
+    public void visit(ConditionIf conditionIf) {
+        statementVisitor.visit(conditionIf);
+    }
+
+    public void visit(ElseStatementEntry elseStatementEntry) {
+        statementVisitor.visit(elseStatementEntry);
+    }
+
+    public void visit(CondFactIfEntry condFactIfEntry) {
+        statementVisitor.visit(condFactIfEntry);
+    }
+
+    public void visit(StatementIfElse statementIfElse) {
+        statementVisitor.visit(statementIfElse);
+    }
+
+    public void visit(CondFactRelop condFactRelop) {
+        statementVisitor.visit(condFactRelop);
+    }
+
+    public void visit(CondFactSingle condFactSingle) {
+        statementVisitor.visit(condFactSingle);
+    }
+
+    public void visit(CondTermFact condTermFact) {
+        statementVisitor.visit(condTermFact);
+    }
+
+    public void visit(CondTermAND condTermAND) {
+        statementVisitor.visit(condTermAND);
+    }
+
+
     public void visit(StatementPrint statementPrint) {
         statementVisitor.visit(statementPrint);
     }

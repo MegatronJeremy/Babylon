@@ -11,11 +11,14 @@ public class DesignatorVisitor extends VisitorAdaptor {
         // ord, chr and len are inserted as inline methods
         Obj obj = designatorOpCall.obj;
         switch (obj.getName()) {
-            case "ord", "chr" -> {
-            }
-            // do nothing - implicitly cast
-            case "len" -> Code.put(Code.arraylength);
-            default -> {
+            case "ord":
+            case "chr":
+                // do nothing - implicitly cast
+                break;
+            case "len":
+                Code.put(Code.arraylength);
+                break;
+            default:
                 // actual function call generation
                 int offset = obj.getAdr() - Code.pc; // from the current instruction
                 Code.put(Code.call);
@@ -23,7 +26,6 @@ public class DesignatorVisitor extends VisitorAdaptor {
                 if (obj.getType() != Tab.noType) {
                     Code.put(Code.pop);
                 }
-            }
         }
     }
 

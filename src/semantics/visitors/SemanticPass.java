@@ -334,6 +334,10 @@ public class SemanticPass extends VisitorAdaptor {
         exprVisitor.visit(condTermFact);
     }
 
+    public void visit(CondFactIf condFactIf) {
+        exprVisitor.visit(condFactIf);
+    }
+
     public void visit(CondFactRelop condFactRelop) {
         exprVisitor.visit(condFactRelop);
     }

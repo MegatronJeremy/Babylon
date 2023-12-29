@@ -50,6 +50,14 @@ namespace Nizovi{
 		print(len(Nizovi::nizch));  // 3
 			
 		a=1;
+		if (a != 1 && Nizovi::nizch[1] == 'b' || Nizovi::nizch[2] != 'c' || Nizovi::nizch[0] == 'a' && a == 1) {
+		    print('o');
+		    print('k');
+		} else {
+		    print('n');
+		    print('o');
+		}
+
 		read(bodovi);
 		print(bodovi);
 		print(eol);

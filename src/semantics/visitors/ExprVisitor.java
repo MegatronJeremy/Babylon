@@ -1,7 +1,6 @@
 package semantics.visitors;
 
 import ast.*;
-import codegen.visitors.ExprCodeVisitor;
 import rs.etf.pp1.mj.runtime.Code;
 import rs.etf.pp1.symboltable.concepts.Struct;
 import semantics.decorators.TabExtended;
@@ -33,7 +32,11 @@ public class ExprVisitor extends VisitorAdaptor {
     }
 
     public void visit(CondTermFact condTermFact) {
-        condTermFact.struct = condTermFact.getCondFact().struct;
+        condTermFact.struct = condTermFact.getCondFactIf().struct;
+    }
+
+    public void visit(CondFactIf condFactIf) {
+        condFactIf.struct = condFactIf.getCondFact().struct;
     }
 
     public void visit(CondFactRelop condFactRelop) {
