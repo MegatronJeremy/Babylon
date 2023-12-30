@@ -42,7 +42,7 @@ public class SemanticPass extends VisitorAdaptor {
         return instance;
     }
 
-    public int getnVars() {
+    public int getVars() {
         return nVars;
     }
 

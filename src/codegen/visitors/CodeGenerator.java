@@ -5,7 +5,6 @@ import ast.*;
 public class CodeGenerator extends VisitorAdaptor {
     private static CodeGenerator instance = null;
     private final VisitorAdaptor statementVisitor = new StatementVisitor();
-    private final VisitorAdaptor constDeclVisitor = new ConstDeclVisitor();
     private final VisitorAdaptor methodVisitor = new MethodVisitor();
     private final VisitorAdaptor designatorVisitor = new DesignatorVisitor();
     private final VisitorAdaptor exprVisitor = new ExprVisitor();
@@ -106,10 +105,6 @@ public class CodeGenerator extends VisitorAdaptor {
         statementVisitor.visit(statementContinue);
     }
 
-    public void visit(ConstDecl constDecl) {
-        constDeclVisitor.visit(constDecl);
-    }
-
     public void visit(MethodTypeName methodTypeName) {
         methodVisitor.visit(methodTypeName);
     }
@@ -120,6 +115,10 @@ public class CodeGenerator extends VisitorAdaptor {
 
     public void visit(DesignatorOpCall designatorOpCall) {
         designatorVisitor.visit(designatorOpCall);
+    }
+
+    public void visit(DesignatorFunction designatorFunction) {
+        designatorVisitor.visit(designatorFunction);
     }
 
     public void visit(DesignatorOpAssign designatorOpAssign) {
@@ -140,6 +139,18 @@ public class CodeGenerator extends VisitorAdaptor {
 
     public void visit(DesignatorArr designatorArr) {
         designatorVisitor.visit(designatorArr);
+    }
+
+    public void visit(DesignatorExists designatorExists) {
+        designatorVisitor.visit(designatorExists);
+    }
+
+    public void visit(DesignatorEmpty designatorEmpty) {
+        designatorVisitor.visit(designatorEmpty);
+    }
+
+    public void visit(DesignatorAssignListStmt designatorAssignListStmt) {
+        designatorVisitor.visit(designatorAssignListStmt);
     }
 
     public void visit(FactorDesignator factorDesignator) {
@@ -173,5 +184,6 @@ public class CodeGenerator extends VisitorAdaptor {
     public void visit(FactorBoolConst factorBoolConst) {
         exprVisitor.visit(factorBoolConst);
     }
+
 
 }

@@ -70,7 +70,7 @@ public class MJParserTest {
 
                 CodeGenerator codeGenerator = CodeGenerator.getInstance();
                 program.traverseBottomUp(codeGenerator);
-                Code.dataSize = semanticPass.getnVars();
+                Code.dataSize = semanticPass.getVars();
                 Code.mainPc = codeGenerator.getMainPC();
                 Code.write(Files.newOutputStream(objFile.toPath()));
 

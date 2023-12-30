@@ -27,6 +27,7 @@
         <delete dir="${ast.dir}"/>
         <delete dir="${build.dir}"/>
         <delete dir="${out.idea.dir}"/>
+        <delete dir="${out.dir}"/>
     </target>
 
     <target name="clean-logs">

@@ -74,12 +74,10 @@ public class StatementVisitor extends VisitorAdaptor {
 
     public void visit(StatementIfElse statementIfElse) {
         // done with everything -> just jump over else statement
-        if (!ifFixupStack.isEmpty()) {
-            Integer nextIfFixup = ifFixupStack.pop();
-            Code.fixup(nextIfFixup);
-        } else {
-            throw new RuntimeException("Fixup list should not be empty!");
-        }
+        assert !ifFixupStack.isEmpty();
+
+        Integer nextIfFixup = ifFixupStack.pop();
+        Code.fixup(nextIfFixup);
 
         // ALSO fixup all leftover AND false jump conditions
         Queue<Integer> nextCondFixupList = nextCondFixupListStack.pop();
@@ -94,9 +92,9 @@ public class StatementVisitor extends VisitorAdaptor {
     }
 
     public void visit(CondFactSingle condFactSingle) {
-        // compare with zero
+        // if not equal zero condition is true
         Code.loadConst(0);
-        currentRelop = Code.eq;
+        currentRelop = Code.ne;
     }
 
     public void visit(CondTermFact condTermFact) {
@@ -128,7 +126,7 @@ public class StatementVisitor extends VisitorAdaptor {
         Code.putJump(0);
         forBodyFixup = Code.pc - 2;
 
-        // setup the condition node for regeneration
+        // set up the condition node for regeneration
         forCondFact = condFactExists.getCondFact();
 
         // Jump after to check for condition and do post-op

@@ -20,6 +20,8 @@ public class ProgramVisitor extends VisitorAdaptor {
         TabExtended.openScope();
 
         semanticPass.programScope = TabExtended.currentScope;
+
+        TabExtended.generateHelpers();
     }
 
     public void visit(Program program) {
