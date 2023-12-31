@@ -2,6 +2,48 @@
 
 program test301
 
+namespace Predmeti{
+    const int cinilac = 4, delilac = 3;
+
+	class Predmet
+	{
+		 int tezina;
+		 char vrsta;
+		{
+			 void postaviTezinu(int tezina) {this.tezina = tezina;}
+			 void ucitajTezinu() { read(tezina); }
+			 int zapremina() { return 0;} // need to pass "this" here as well!
+			 int Q() {return zapremina() * tezina;}
+			 void postaviVrstu(char vrsta) {this.vrsta = vrsta;}
+			 char dohvVrstu() { return vrsta; }
+			 int dohvTezinu() { return tezina; }
+			 void ispisi() {
+				print(vrsta);
+				print(Q());
+			 }
+		}
+	}
+
+	class Sfera extends Predmet
+	{
+		int r;
+		{
+
+			 void postaviPoluprecnik(int r) {this.r = r; }
+
+			 int zapremina()
+				int z;
+			{
+				z = cinilac;
+				return z *(r/delilac);
+			}
+
+		}
+	}
+
+	{}
+}
+
 namespace Konstante{
 	const int nula = 0;
 	const int jedan = 1;

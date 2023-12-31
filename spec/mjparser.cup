@@ -82,7 +82,8 @@ nonterminal VarDeclList;
 nonterminal semantics.util.ObjList VarList, VarDecl;
 nonterminal rs.etf.pp1.symboltable.concepts.Obj VarName;
 
-nonterminal ClassDecl, ClassName, ExtendsClause, ClassBody;
+nonterminal rs.etf.pp1.symboltable.concepts.Obj ClassName;
+nonterminal ClassDecl, ExtendsClause, ClassBody;
 nonterminal StaticVarDeclList, StaticInitList, StaticInitializer, StaticInitializerStart, MethodDeclBody;
 nonterminal ClassVarDeclListOpt, ClassVarDeclList;
 
@@ -222,7 +223,7 @@ ClassVarDeclListOpt ::= (ClassVarDeclListExists) ClassVarDeclList
     ;
 
 ClassVarDeclList ::= (ClassVarDeclListMultiple) ClassVarDeclList VarDecl
-    | (ClassVarDeclSingle) VarDecl
+    | VarDecl
     ;
 
 MethodDeclBody ::= (MethodDeclBodyExists) LBRACE MethodDeclList RBRACE
@@ -357,8 +358,9 @@ DesignatorOpCall ::= (DesignatorOpCall) Designator LPAREN ActParsOpt RPAREN
     ;
 
 // Do an indexing operation on the passed name
-// Check if the type is a class for the first one (TODO)
+// Check if the type is a class for the first one 
 // Check if the type is an array for the second one
+// TODO make this loading work with left recursion
 Designator ::= (DesignatorIndOpDot) Designator PERIOD IDENT:identifier
     | (DesignatorIndOpBracket) DesignatorArr LBRACKET Expr RBRACKET
     | (DesignatorNoInd) DesignatorName

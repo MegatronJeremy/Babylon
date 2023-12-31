@@ -23,7 +23,10 @@ public class ClassVisitor extends VisitorAdaptor {
         TabExtended.chainLocalSymbols(semanticPass.currentClass.getType()); // this does everything
         TabExtended.closeScope();
 
+        // set everything to null
         semanticPass.currentClass = null;
+        semanticPass.currentClassCoreName = null;
+        semanticPass.currentClassSupertype = null;
     }
 
     public void visit(ClassName className) {
@@ -39,35 +42,40 @@ public class ClassVisitor extends VisitorAdaptor {
 
         // Prepare for static variable declaration
         semanticPass.currentClass = classNode;
-        TabExtended.openScope();
+
+        // DO NOT OPEN NEW SCOPE YET - ONLY AT THE END OF THE STATIC BLOCK
+        semanticPass.inStaticDef = true;
+
+        // save this for later
+        className.obj = classNode;
     }
 
     public void visit(ExtendsClauseExists extendsClauseExists) {
-        Struct classType = extendsClauseExists.getType().struct;
+        semanticPass.currentClassSupertype = extendsClauseExists.getType().struct;
 
-        if (classType.getKind() != Struct.Class) {
-            LogUtils.logError("Extends clause only allowed with class type", extendsClauseExists);
-        } else {
-            this.semanticPass.currentClass.getType().setElementType(classType);
-            Collection<Obj> members = classType.getMembers();
-            for (Obj obj : members) {
-                Obj cloned = TabExtended.insert(obj.getKind(), obj.getName(), obj.getType());
-                cloned.setLevel(obj.getLevel()); // ensure this is ok for methods
+        // supertype exists
+        Struct currentClassType = semanticPass.currentClass.getType();
+        Struct superClassType = semanticPass.currentClassSupertype;
 
-                TabExtended.openScope();
-                // copy locals
-                for (Obj local : obj.getLocalSymbols()) {
-                    TabExtended.insert(local.getKind(), local.getName(), local.getType());
-                }
-                TabExtended.chainLocalSymbols(cloned);
-                TabExtended.closeScope();
-            }
-        }
+        String coreClassName = semanticPass.classCoreNames.get(superClassType);
+        assert coreClassName != null;
+
+        semanticPass.classCoreNames.put(currentClassType, coreClassName);
+        semanticPass.currentClassCoreName = coreClassName;
+    }
+
+    public void visit(ExtendsClauseEmpty extendsClauseEmpty) {
+        Struct currentClassType = semanticPass.currentClass.getType();
+        String currentClassName = semanticPass.currentClass.getName();
+        semanticPass.classCoreNames.put(currentClassType, currentClassName);
+        // core class name for base class is the name itself
+
+        semanticPass.currentClassCoreName = currentClassName;
     }
 
     public void visit(StaticVarDeclListExists staticVarDeclList) {
         ObjList objList = staticVarDeclList.getVarDecl().objlist;
-        String currentClass = semanticPass.currentClass.getName();
+        String currentClass = semanticPass.currentClassCoreName;
 
         semanticPass.staticClassFields.putIfAbsent(currentClass, new HashSet<>());
         HashSet<String> staticClasses = semanticPass.staticClassFields.get(currentClass);
@@ -76,8 +84,51 @@ public class ClassVisitor extends VisitorAdaptor {
     }
 
     public void visit(StaticVarDeclListEmpty staticVarDeclList) {
-        String currentClass = semanticPass.currentClass.getName();
+        String currentClass = semanticPass.currentClassCoreName;
 
         semanticPass.staticClassFields.putIfAbsent(currentClass, new HashSet<>());
+    }
+
+    public void visit(StaticInitializerStart staticInitializerStart) {
+        // ensure you are not in static def mode
+        semanticPass.inStaticDef = false;
+    }
+
+    public void visit(StaticInitListEmpty staticInitListEmpty) {
+        // ensure this is false at this point as well in case it was skipped over
+        semanticPass.inStaticDef = false;
+
+        // end of static initialization - open class scope here
+        TabExtended.openScope();
+
+        // add virtual table function pointer
+        TabExtended.insert(Obj.Fld, "@vftp", TabExtended.intType);
+
+        Struct superClassType = semanticPass.currentClassSupertype;
+        if (superClassType == null) {
+            return;
+        }
+
+        // do everything regarding extends clause here
+        if (superClassType.getKind() != Struct.Class) {
+            LogUtils.logError("Extends clause only allowed with class type", staticInitListEmpty);
+        } else {
+            Struct currentClassType = this.semanticPass.currentClass.getType();
+            currentClassType.setElementType(superClassType);
+
+            Collection<Obj> members = superClassType.getMembers();
+            for (Obj obj : members) {
+                Obj cloned = TabExtended.insert(obj.getKind(), obj.getName(), obj.getType());
+                cloned.setFpPos(obj.getFpPos()); // ensure this is ok for methods
+
+                TabExtended.openScope();
+                // copy locals for methods
+                for (Obj local : obj.getLocalSymbols()) {
+                    TabExtended.insert(local.getKind(), local.getName(), local.getType());
+                }
+                TabExtended.chainLocalSymbols(cloned);
+                TabExtended.closeScope();
+            }
+        }
     }
 }

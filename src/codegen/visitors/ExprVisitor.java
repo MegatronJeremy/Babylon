@@ -45,4 +45,17 @@ public class ExprVisitor extends VisitorAdaptor {
         }
     }
 
+    public void visit(FactorNewClass factorNewClass) {
+        Struct type = factorNewClass.getType().struct;
+        Code.put(Code.new_);
+        Code.put2(type.getNumberOfFields() * 4); // all fields are 4 bytes (one field - one word)
+
+        // store vftp of class
+        Integer vftpAddr = CodeGenerator.getInstance().vftpMap.get(type);
+        Code.put(Code.dup); // duplicate address
+        Code.loadConst(vftpAddr); // put val on stack
+        Code.put(Code.putfield); // store vftp
+        Code.put2(0);
+    }
+
 }

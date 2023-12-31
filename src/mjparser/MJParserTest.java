@@ -46,7 +46,7 @@ public class MJParserTest {
             program.traverseBottomUp(semanticPass);
 
             log.info("===================================");
-            TabExtended.dump();
+//            TabExtended.dump();
 
             log.info("===================================");
             if (!lexer.errorDetected && !parser.errorDetected && semanticPass.passed()) {
@@ -68,13 +68,13 @@ public class MJParserTest {
                     log.info("Regenerating file " + outputFile);
                 }
 
+                Code.dataSize = semanticPass.getVars(); // code size in number of GLOBAL variables
+
                 CodeGenerator codeGenerator = CodeGenerator.getInstance();
                 program.traverseBottomUp(codeGenerator);
-                Code.dataSize = semanticPass.getVars();
                 Code.mainPc = codeGenerator.getMainPC();
+
                 Code.write(Files.newOutputStream(objFile.toPath()));
-
-
             } else {
                 log.error("Parsing and semantic analysis was not successful!");
             }

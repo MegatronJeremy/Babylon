@@ -1,6 +1,11 @@
 package codegen.visitors;
 
 import ast.*;
+import rs.etf.pp1.symboltable.concepts.Obj;
+import rs.etf.pp1.symboltable.concepts.Struct;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class CodeGenerator extends VisitorAdaptor {
     private static CodeGenerator instance = null;
@@ -8,7 +13,13 @@ public class CodeGenerator extends VisitorAdaptor {
     private final VisitorAdaptor methodVisitor = new MethodVisitor();
     private final VisitorAdaptor designatorVisitor = new DesignatorVisitor();
     private final VisitorAdaptor exprVisitor = new ExprVisitor();
-    int mainPC;
+    private final VisitorAdaptor classVisitor = new ClassVisitor();
+
+    int mainFixupAddr;
+    Integer mainPC = null;
+    Obj currentClass = null;
+
+    Map<Struct, Integer> vftpMap = new HashMap<>();
 
     private CodeGenerator() {
     }
@@ -141,6 +152,10 @@ public class CodeGenerator extends VisitorAdaptor {
         designatorVisitor.visit(designatorArr);
     }
 
+    public void visit(DesignatorNoInd designatorNoInd) {
+        designatorVisitor.visit(designatorNoInd);
+    }
+
     public void visit(DesignatorExists designatorExists) {
         designatorVisitor.visit(designatorExists);
     }
@@ -185,5 +200,27 @@ public class CodeGenerator extends VisitorAdaptor {
         exprVisitor.visit(factorBoolConst);
     }
 
+    public void visit(FactorNewClass factorNewClass) {
+        exprVisitor.visit(factorNewClass);
+    }
 
+    public void visit(ExtendsClauseExists extendsClauseExists) {
+        classVisitor.visit(extendsClauseExists);
+    }
+
+    public void visit(StaticInitializerStart staticInitializerStart) {
+        classVisitor.visit(staticInitializerStart);
+    }
+
+    public void visit(StaticInitializer staticInitializer) {
+        classVisitor.visit(staticInitializer);
+    }
+
+    public void visit(ClassName className) {
+        classVisitor.visit(className);
+    }
+
+    public void visit(ClassDecl classDecl) {
+        classVisitor.visit(classDecl);
+    }
 }

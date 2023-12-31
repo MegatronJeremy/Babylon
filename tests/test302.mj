@@ -51,7 +51,7 @@ int a, curr;
 	{
 
 		if(1!=1) print(-6);
-		else print(0);  
+		else print(0); // prints 0
 			
 		ibool = false;
 		for(i=0; i < 5; i++){
@@ -59,14 +59,14 @@ int a, curr;
 		}
 		
 		if(ibool)
-			if(i == 5) print(1);
+			if(i == 5) print(1); // prints one
 			else print(-1);
 		a = 2;
 		niz = new int[3];
 		niz[0] = 1 * a; // niz[0] = 2
 		niz[1] = 2 * a; // niz[1] = 4
 		niz[2] = Addition::sum(niz[1], niz[0]) * a + 1; // niz[2] = 13
-		if(verify() || niz[2] == 4) print(ord('A')); 
+		if(verify() || niz[2] == 4) print(ord('A')); // prints 'v'
 		else print(ord('a')); // prints this (97)
 		
 		print(eol);
@@ -81,9 +81,9 @@ int a, curr;
 		}
 
 		// breaks when i == 4
-		
+
 		if(i == 3 && verify()) print(-4);
-		else print(4);  // prints this
+		else print(4);  // prints 4 only!
 
 		read(niz[0]); // 1
 		read(niz[1]); // 2
@@ -99,11 +99,11 @@ int a, curr;
 			niz[i] = niz[i] * 2 * a; // 1, 2, 3 -> 6, 12, 18
 		}
 		
-		for (i=0; i < 3; i++) print(niz[i]); // 6, 12, 18
+		for (i=0; i < 3; i++) print(niz[i]); // prints 6, 12, 18
 		print(eol);
 		
 		niz2 = 0;
-		for (i=0; i < 3; i++) niz2 = niz2 + niz[i] * niz[i]; // 6*6 + 12*12 + 18*18 = 504
+		for (i=0; i < 3; i++) niz2 = niz2 + niz[i] * niz[i]; // prints 6*6 + 12*12 + 18*18 = 504
 		print(niz2);
 
 		print(eol);
@@ -114,31 +114,31 @@ int a, curr;
 
 		Unpacking::niz2 = new int[1];
 		[Unpacking::a,Unpacking::b,*Unpacking::niz2] = Unpacking::niz; // a = 1, b = 2, niz2[0] = 6
-		print(Unpacking::a); // 1
-		print(Unpacking::b); // 2
-		print(Unpacking::niz2[0]); // 6
+		print(Unpacking::a); // prints 1
+		print(Unpacking::b); // prints 2
+		print(Unpacking::niz2[0]); // prints 6
 		print(eol);
 		
 		Unpacking::niz2 = new int[1];
 	    [,Unpacking::a,*Unpacking::niz2] = niz; // a = niz[1], niz2[0] = niz[2]
-		print(Unpacking::a); // 12
-		print(Unpacking::niz2[0]); // 18
+		print(Unpacking::a); // prints 12
+		print(Unpacking::niz2[0]); // prints 18
 		print(eol);
 
 		Unpacking::niz2 = new int[2];
 		Unpacking::niz3 = new int[1];
 	    [Unpacking::niz2[0],Unpacking::niz2[Unpacking::niz[0]],*Unpacking::niz3] = Unpacking::niz;
 
-		print(Unpacking::niz2[0]); // 1
-		print(Unpacking::niz2[1]); // 2
-		print(Unpacking::niz3[0]); // 6
+		print(Unpacking::niz2[0]); // prints 1
+		print(Unpacking::niz2[1]); // prints 2
+		print(Unpacking::niz3[0]); // prints 6
 		print(eol);
 		
 		Unpacking::niz3 = new int[3];
 		[*Unpacking::niz3] = niz;
-		print(Unpacking::niz3[0]); // 6
-		print(Unpacking::niz3[1]); // 12
-		print(Unpacking::niz3[2]); // 18
+		print(Unpacking::niz3[0]); // prints 6
+		print(Unpacking::niz3[1]); // prints 12
+		print(Unpacking::niz3[2]); // prints 18
 		print(eol);
 		
 		// Unpacking::niz3 = new int[1];

@@ -125,7 +125,7 @@ public class DesignatorVisitor extends VisitorAdaptor {
             Collection<Obj> localSymbols = func.getLocalSymbols();
 
             int actPars = structList.size();
-            int formPars = func.getLevel();
+            int formPars = func.getFpPos();
 
             boolean thisSkipped = true;
             if (formPars > 0) {
@@ -217,8 +217,13 @@ public class DesignatorVisitor extends VisitorAdaptor {
             // special case
             Scope scopeToSearch = TabExtended.currentScope.getOuter(); // look in outer scope (not yet chained)
             obj = scopeToSearch.findSymbol(identifier);
-        } else {
+        } else if (design.getKind() != Obj.Type) {
+            // is normal member
             obj = type.getMembersTable().searchKey(identifier);
+        } else {
+            // is static member - name is global
+            String name = semanticPass.getCoreClassName(type) + "." + identifier;
+            obj = TabExtended.find(name);
         }
 
         if (obj == null) {

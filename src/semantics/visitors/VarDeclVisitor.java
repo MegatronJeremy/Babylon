@@ -18,7 +18,8 @@ public class VarDeclVisitor extends VisitorAdaptor {
         String qualifiedName = semanticPass.getQualifiedNameDeclaration(varScalar.getVarName());
 
         // Declare with noType
-        varScalar.obj = new Obj(Obj.Var, qualifiedName, TabExtended.noType);
+        int objKind = semanticPass.currentVarDeclObjKind();
+        varScalar.obj = new Obj(objKind, qualifiedName, TabExtended.noType);
     }
 
     public void visit(VarArray varArray) {
@@ -26,7 +27,9 @@ public class VarDeclVisitor extends VisitorAdaptor {
 
         // Set elemType to noType for now
         Struct varType = new Struct(Struct.Array, TabExtended.noType);
-        varArray.obj = new Obj(Obj.Var, qualifiedName, varType);
+
+        int objKind = semanticPass.currentVarDeclObjKind();
+        varArray.obj = new Obj(objKind, qualifiedName, varType);
     }
 
     public void visit(VarDeclCorrect varDecl) {

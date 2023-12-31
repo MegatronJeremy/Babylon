@@ -11,7 +11,6 @@ public class NamespaceVisitor extends VisitorAdaptor {
         this.semanticPass = semanticPass;
     }
 
-    //     TODO is this enough?
     public void visit(NamespaceName namespaceName) {
         this.semanticPass.currentNamespace = namespaceName.getNamespaceName();
     }

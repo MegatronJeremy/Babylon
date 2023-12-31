@@ -47,9 +47,9 @@ public class MethodVisitor extends VisitorAdaptor {
 
         if (semanticPass.currentClass != null) {
             TabExtended.insert(Obj.Var, "this", semanticPass.currentClass.getType());
-            semanticPass.currentMethod.setLevel(1); // implicit formal parameter
+            semanticPass.currentMethod.setFpPos(1); // implicit formal parameter
         } else {
-            semanticPass.currentMethod.setLevel(0); // 0 formal parameters at first
+            semanticPass.currentMethod.setFpPos(0); // 0 formal parameters at first
         }
 
         methodTypeName.obj = semanticPass.currentMethod;
@@ -70,7 +70,7 @@ public class MethodVisitor extends VisitorAdaptor {
         VisitorUtils.declareVariable(formParsList.getVarName().obj, formParsList.getType().struct, formParsList);
 
         // Also increase formal parameter count
-        semanticPass.currentMethod.setLevel(semanticPass.currentMethod.getLevel() + 1);
+        semanticPass.currentMethod.setFpPos(semanticPass.currentMethod.getFpPos() + 1);
     }
 
     public void visit(FormParsListMultiple formParsList) {
@@ -78,7 +78,7 @@ public class MethodVisitor extends VisitorAdaptor {
         VisitorUtils.declareVariable(formParsList.getVarName().obj, formParsList.getType().struct, formParsList);
 
         // Also increase formal parameter count
-        semanticPass.currentMethod.setLevel(semanticPass.currentMethod.getLevel() + 1);
+        semanticPass.currentMethod.setFpPos(semanticPass.currentMethod.getFpPos() + 1);
     }
 
     public void visit(FormParsListError formParsList) {
@@ -86,7 +86,7 @@ public class MethodVisitor extends VisitorAdaptor {
         VisitorUtils.declareVariable(formParsList.getVarName().obj, formParsList.getType().struct, formParsList);
 
         // Also increase formal parameter count
-        semanticPass.currentMethod.setLevel(semanticPass.currentMethod.getLevel() + 1);
+        semanticPass.currentMethod.setFpPos(semanticPass.currentMethod.getFpPos() + 1);
     }
 
     public void visit(ActParsExists actParsExists) {

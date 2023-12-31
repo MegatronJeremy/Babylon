@@ -23,6 +23,18 @@ public class StatementVisitor extends VisitorAdaptor {
     private Integer forBodyFixup;
     private CondFact forCondFact;
 
+    private void fixupLeftoverAND() {
+        if (nextCondFixupListStack.isEmpty()) {
+            return;
+        }
+
+        // ALSO fixup all leftover AND false jump conditions
+        Queue<Integer> nextCondFixupList = nextCondFixupListStack.pop();
+        while (!nextCondFixupList.isEmpty()) {
+            Integer nextAddr = nextCondFixupList.poll();
+            Code.fixup(nextAddr);
+        }
+    }
 
     private void visitCondTerm(CondTerm condTerm) {
         // centralized logic for putting jumps here
@@ -70,6 +82,8 @@ public class StatementVisitor extends VisitorAdaptor {
         // need to use a list because of nested if/else blocks
 
         Code.fixup(elseFixupStack.pop()); // stack because of recursion
+
+        fixupLeftoverAND(); // if else exists jump here -> NOT OVER
     }
 
     public void visit(StatementIfElse statementIfElse) {
@@ -80,11 +94,7 @@ public class StatementVisitor extends VisitorAdaptor {
         Code.fixup(nextIfFixup);
 
         // ALSO fixup all leftover AND false jump conditions
-        Queue<Integer> nextCondFixupList = nextCondFixupListStack.pop();
-        while (!nextCondFixupList.isEmpty()) {
-            Integer nextAddr = nextCondFixupList.poll();
-            Code.fixup(nextAddr);
-        }
+        fixupLeftoverAND();
     }
 
     public void visit(CondFactRelop condFactRelop) {

@@ -4,9 +4,14 @@ import ast.*;
 import codegen.visitors.ExprCodeVisitor;
 import rs.etf.pp1.symboltable.concepts.Obj;
 import rs.etf.pp1.symboltable.concepts.Scope;
+import rs.etf.pp1.symboltable.concepts.Struct;
 import semantics.decorators.TabExtended;
 import semantics.util.LogUtils;
 import semantics.util.StaticClassFields;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 public class SemanticPass extends VisitorAdaptor {
 
@@ -24,8 +29,12 @@ public class SemanticPass extends VisitorAdaptor {
     VisitorAdaptor exprCodeVisitor = new ExprCodeVisitor();
     Obj currentMethod = null;
     Obj currentClass = null;
+    Struct currentClassSupertype = null;
+    String currentClassCoreName = null;
+    Map<Struct, String> classCoreNames = new HashMap<>();
     boolean returnFound = false;
     boolean inForLoop = false;
+    boolean inStaticDef = false;
     int nVars = 0;
     String currentNamespace = "";
     Scope programScope = null;
@@ -46,10 +55,21 @@ public class SemanticPass extends VisitorAdaptor {
         return nVars;
     }
 
+    String getNamespaceQualifiedName(String name) {
+        return currentNamespace.isEmpty() ? name : currentNamespace + "::" + name;
+    }
+
     String getQualifiedNameDeclaration(String name) {
+        if (inStaticDef) {
+            assert currentClass != null;
+
+            // extra qualifier for static fields
+            name = currentClass.getName() + "." + name;
+        }
+
         if (TabExtended.currentScope == programScope) {
             // return name qualified to scope
-            return getQualifiedNameLookup(name);
+            return getNamespaceQualifiedName(name);
         } else {
 //            LogUtils.logInfo("Returning unqualified name");
             // return as unqualified name (local to an inner scope)
@@ -59,7 +79,29 @@ public class SemanticPass extends VisitorAdaptor {
 
     String getQualifiedNameLookup(String name) {
 //        LogUtils.logInfo("Returning fully qualified name");
-        return currentNamespace.equals("") ? name : currentNamespace + "::" + name;
+
+        if (currentClass != null && !inStaticDef) {
+            // check if field is static
+            String classQualifiedName = currentClassCoreName + "." + name;
+            String staticVarName = getNamespaceQualifiedName(classQualifiedName);
+
+            Set<String> staticClassFieldsSet = staticClassFields.get(currentClassCoreName);
+            assert staticClassFieldsSet != null;
+
+            if (staticClassFieldsSet.contains(staticVarName)) {
+                return staticVarName;
+            }
+        }
+
+        return getNamespaceQualifiedName(name);
+    }
+
+    String getCoreClassName(Struct type) {
+        return classCoreNames.get(type);
+    }
+
+    int currentVarDeclObjKind() {
+        return currentClass != null && currentMethod == null && !inStaticDef ? Obj.Fld : Obj.Var;
     }
 
     public boolean passed() {
@@ -142,6 +184,10 @@ public class SemanticPass extends VisitorAdaptor {
         classVisitor.visit(className);
     }
 
+    public void visit(ExtendsClauseEmpty extendsClauseEmpty) {
+        classVisitor.visit(extendsClauseEmpty);
+    }
+
     public void visit(ExtendsClauseExists extendsClauseExists) {
         classVisitor.visit(extendsClauseExists);
     }
@@ -156,6 +202,10 @@ public class SemanticPass extends VisitorAdaptor {
 
     public void visit(StaticInitializerStart staticInitializerStart) {
         classVisitor.visit(staticInitializerStart);
+    }
+
+    public void visit(StaticInitListEmpty staticInitListEmpty) {
+        classVisitor.visit(staticInitListEmpty);
     }
 
     public void visit(StaticInitializer staticInitializer) {
@@ -441,4 +491,5 @@ public class SemanticPass extends VisitorAdaptor {
     public void visit(MulopModulo mulopModulo) {
         exprCodeVisitor.visit(mulopModulo);
     }
+
 }

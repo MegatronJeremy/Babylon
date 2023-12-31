@@ -13,6 +13,19 @@ public class DesignatorVisitor extends VisitorAdaptor {
 
     private final Stack<Boolean> designatorExistsStack = new Stack<>();
 
+    private Obj currentDesignatorClass = null;
+
+    private void invokeVirtualFunction(Obj obj) {
+        // before invoking function class address must be passed
+        Obj vftp = currentDesignatorClass.getType().getMembersTable().searchKey("@vftp");
+        Code.load(vftp);
+        Code.put(Code.invokevirtual); // invoke virtual with function name
+        for (char c : obj.getName().toCharArray()) {
+            Code.put4(c);
+        }
+        Code.put4(-1);
+    }
+
     public void visit(DesignatorOpCall designatorOpCall) {
         // ord, chr and len are inserted as inline methods
         Obj obj = designatorOpCall.obj;
@@ -26,9 +39,17 @@ public class DesignatorVisitor extends VisitorAdaptor {
                 break;
             default:
                 // actual function call generation
-                int offset = obj.getAdr() - Code.pc; // from the current instruction
-                Code.put(Code.call);
-                Code.put2(offset);
+                if (obj.getLevel() != 0) {
+                    // invoke virtual function
+                    // but first regen designator
+                    designatorOpCall.getDesignator().traverseBottomUp(CodeGenerator.getInstance());
+                    invokeVirtualFunction(obj);
+                } else {
+                    // normal (non-virtual) function call
+                    int offset = obj.getAdr() - Code.pc; // from the current instruction
+                    Code.put(Code.call);
+                    Code.put2(offset);
+                }
         }
     }
 
@@ -58,15 +79,34 @@ public class DesignatorVisitor extends VisitorAdaptor {
     }
 
     public void visit(DesignatorIndOpDot designatorIndOpDot) {
+        // Two cases - designator is type and designator is class
+
         // same as array - later get-field will be generated
         Obj cls = designatorIndOpDot.getDesignator().obj;
-        Code.load(cls);
+        if (cls.getKind() != Obj.Type) {
+            // load class for field access
+            Code.load(cls);
+
+            // TODO see if this can be done better
+            currentDesignatorClass = cls;
+        }
+        // else field is statically accessed
     }
 
     public void visit(DesignatorArr designatorArr) {
         // this is correct -> just generate arr address and later load will do aload
         Obj arr = designatorArr.getDesignator().obj;
         Code.load(arr);
+    }
+
+    public void visit(DesignatorNoInd designatorNoInd) {
+        Obj design = designatorNoInd.obj;
+        if (design.getKind() == Obj.Fld || design.getKind() == Obj.Meth && design.getLevel() != 0) {
+            // load implicit this of method if in class
+            Code.put(Code.load_n); // load 0-th field
+
+            currentDesignatorClass = CodeGenerator.getInstance().currentClass;
+        }
     }
 
     // Designator assign list statement from here on out

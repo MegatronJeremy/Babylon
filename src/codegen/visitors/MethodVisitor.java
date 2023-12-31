@@ -14,7 +14,13 @@ public class MethodVisitor extends VisitorAdaptor {
 
     public void visit(MethodTypeName methodTypeName) {
         if (Objects.equals(methodTypeName.getMethodName(), "main")) {
-            CodeGenerator.getInstance().mainPC = Code.pc;
+            if (CodeGenerator.getInstance().mainPC == null) {
+                // no static init blocks
+                CodeGenerator.getInstance().mainPC = Code.pc;
+            } else {
+                // mainPC already placed, fix linking
+                Code.fixup(CodeGenerator.getInstance().mainFixupAddr);
+            }
         }
         Obj obj = methodTypeName.obj;
 
@@ -24,7 +30,7 @@ public class MethodVisitor extends VisitorAdaptor {
         Code.put(Code.enter);
 
         // Number of formal parameters
-        Code.put(obj.getLevel());
+        Code.put(obj.getFpPos());
 
         // Number of local variables
         Code.put(obj.getLocalSymbols().size());

@@ -112,12 +112,14 @@
         </java>
     </target>
 
-    <property name="test-file" value="test302.mj"/>
+    <property name="test-file" value="test303.mj"/>
     <property name="test-file-path" value="${tests.dir}/${test-file}"/>
 
     <target name="run">
         <java classpathref="build-classpath" jar="${build.jar.dir}/MJCompiler.jar" fork="true">
             <arg value="${test-file-path}"/>
+            <!-- Enable assertions -->
+            <jvmarg value="-ea"/>
         </java>
     </target>
 
