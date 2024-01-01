@@ -95,6 +95,12 @@ int tezinaK, tezinaS;
 		print(p.dohvTezinu()); // prints weight (set)
 		print(eol);
 	}
+
+	int getIndex(int index)
+	{
+	    print('a');
+	    return index;
+	}
 		
 	void main() Predmeti::Predmet predmeti[]; int i; Predmeti::Sfera s1, s2, s3; Predmeti::Kvadar k1, k2, k3; int t;
 	{
@@ -138,9 +144,12 @@ int tezinaK, tezinaS;
 		predmeti[5] = k3;
 
 		read(t); // 3
+		print(eol);
 		for(i=0; i<6; i++){
-			predmeti[i].postaviTezinu(t); 	
+			predmeti[getIndex(i)].postaviTezinu(predmeti[(i + 1) % 6].dohvTezinu() + t);
+			print(i);
 		}
+		print(eol);
 		
 		zapreminaS = 0;
 		tezinaS = 0;

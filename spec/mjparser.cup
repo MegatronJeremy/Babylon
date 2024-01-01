@@ -101,6 +101,7 @@ nonterminal rs.etf.pp1.symboltable.concepts.Obj Designator, DesignatorArr, Desig
 nonterminal semantics.util.ObjList DesignatorAssignList;
 nonterminal DesignatorOperation;
 
+nonterminal DesignatorActParsEntry;
 nonterminal semantics.util.StructList ActPars, ActParsOpt;
 nonterminal rs.etf.pp1.symboltable.concepts.Struct Condition, CondTerm, CondFact, CondFactIf;
 nonterminal StatementIfElseEntry, ConditionIf, CondFactIfEntry;
@@ -354,13 +355,16 @@ DesignatorOperation ::= (DesignatorOpAssign) Designator Assignop Expr
     ;
 
 // Returns function object
-DesignatorOpCall ::= (DesignatorOpCall) Designator LPAREN ActParsOpt RPAREN
+DesignatorOpCall ::= (DesignatorOpCall) Designator DesignatorActParsEntry LPAREN ActParsOpt RPAREN
+    ;
+
+DesignatorActParsEntry ::= (DesignatorActParsEntry) 
     ;
 
 // Do an indexing operation on the passed name
 // Check if the type is a class for the first one 
 // Check if the type is an array for the second one
-// TODO make this loading work with left recursion
+// This will work with left recursion as well for code generation
 Designator ::= (DesignatorIndOpDot) Designator PERIOD IDENT:identifier
     | (DesignatorIndOpBracket) DesignatorArr LBRACKET Expr RBRACKET
     | (DesignatorNoInd) DesignatorName

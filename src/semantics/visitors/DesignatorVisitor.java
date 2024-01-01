@@ -259,7 +259,7 @@ public class DesignatorVisitor extends VisitorAdaptor {
 
             designatorIndOp.obj = TabExtended.noObj;
         } else {
-            // TODO see if this is good
+            // this is good
             Struct elemType = design.getType().getElemType();
             // Declare as element object type
             designatorIndOp.obj = new Obj(Obj.Elem, design.getName(), elemType);

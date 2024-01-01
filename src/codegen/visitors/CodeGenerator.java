@@ -126,6 +126,10 @@ public class CodeGenerator extends VisitorAdaptor {
         designatorVisitor.visit(designatorOpCall);
     }
 
+    public void visit(DesignatorActParsEntry designatorActParsEntry) {
+        designatorVisitor.visit(designatorActParsEntry);
+    }
+
     public void visit(DesignatorFunction designatorFunction) {
         designatorVisitor.visit(designatorFunction);
     }

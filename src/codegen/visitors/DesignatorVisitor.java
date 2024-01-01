@@ -41,16 +41,37 @@ public class DesignatorVisitor extends VisitorAdaptor {
                 // actual function call generation
                 if (obj.getLevel() != 0) {
                     // invoke virtual function
-                    // but first regen designator
-                    // TODO this will have side-effects - because of potential expr evaluation for arrays
-                    designatorOpCall.getDesignator().traverseBottomUp(CodeGenerator.getInstance());
+                    // but first load "this"
+                    Code.load(TabExtended.getHelperC());
                     invokeVirtualFunction(obj);
+
+                    if (obj.getType() != TabExtended.noType) {
+                        // if not a void function need to send down return value
+                        Code.put(Code.dup_x1);
+                        Code.put(Code.pop);
+                    }
+                    // restore previous helperC value (now on top of stack)
+                    Code.store(TabExtended.getHelperC());
                 } else {
                     // normal (non-virtual) function call
                     int offset = obj.getAdr() - Code.pc; // from the current instruction
                     Code.put(Code.call);
                     Code.put2(offset);
                 }
+        }
+    }
+
+    public void visit(DesignatorActParsEntry designatorActParsEntry) {
+        Obj target = ((DesignatorOpCall) designatorActParsEntry.getParent()).obj;
+        if (target.getLevel() != 0) {
+            // store previous helperC value on stack below "this"
+            Code.load(TabExtended.getHelperC());
+            Code.put(Code.dup_x1);
+            Code.put(Code.pop);
+
+            // store "this" in helperC if entering class member function
+            Code.put(Code.dup);
+            Code.store(TabExtended.getHelperC());
         }
     }
 

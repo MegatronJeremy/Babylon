@@ -8,6 +8,7 @@ public class TabExtended extends Tab {
     public static final Struct boolType = new Struct(Struct.Bool);
     private static Obj helperA;
     private static Obj helperB;
+    private static Obj helperC;
 
     public static void init() {
         Tab.init();
@@ -39,9 +40,14 @@ public class TabExtended extends Tab {
         return helperB;
     }
 
+    public static Obj getHelperC() {
+        return helperC;
+    }
+
     public static void generateHelpers() {
         // open global scope and add two static variables to be used as helpers
         helperA = TabExtended.insert(Obj.Var, "@", TabExtended.intType);
         helperB = TabExtended.insert(Obj.Var, "#", TabExtended.intType);
+        helperC = TabExtended.insert(Obj.Var, "^", TabExtended.intType);
     }
 }

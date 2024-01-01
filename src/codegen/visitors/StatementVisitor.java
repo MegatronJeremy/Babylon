@@ -42,7 +42,7 @@ public class StatementVisitor extends VisitorAdaptor {
 
     private void visitCondTerm(CondTerm condTerm) {
         // centralized logic for putting jumps here
-        // TODO see if there is a better way to do this
+        // this is probably the best way to do this
         SyntaxNode parent = condTerm.getParent();
 
         if (parent.getClass() != ConditionCondTerm.class && parent.getClass() != ConditionOR.class) {
