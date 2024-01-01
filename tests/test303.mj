@@ -2,13 +2,14 @@
 
 program test_303
 
-namespace Predmeti{
+namespace Predmeti
+{
     const int cinilac = 4, delilac = 3;
 
 	class Predmet
 	{
-		 int tezina;
-		 char vrsta;
+		int tezina;
+		char vrsta;
 		{
 			 void postaviTezinu(int tezina) {this.tezina = tezina;}  
 			 void ucitajTezinu() { read(tezina); }
@@ -57,31 +58,35 @@ namespace Predmeti{
 	{}
 }
 
-class ProstiBrojevi{
-
+class ProstiBrojevi
+{
 	static int prosti[];
 	static int X,i,j;
 	static bool flag;
 
-	static{
+	static
+	{
 		print('s'); print('t'); print('a'); print('t'); print('i'); print('c'); print(eol); // prints static
 		prosti = new int[10];
 
-		for(X = 0, i = 2; X < 10; i++){
+		for(X = 0, i = 2; X < 10; i++)
+		{
 			flag = true;
-			for(j = 2; j < i; j++){
-				if(i%j == 0){
+			for(j = 2; j < i; j++)
+			{
+				if(i%j == 0)
+				{
 					flag = false;
 					break;
 				}
 			}
-			if(flag){
+			if(flag)
+			{
 				prosti[X] = i;
 				X++;
 			}
 		}
 	}
-
 }
 
 int zapreminaK, zapreminaS;
@@ -145,7 +150,8 @@ int tezinaK, tezinaS;
 
 		read(t); // 3
 		print(eol);
-		for(i=0; i<6; i++){
+		for(i=0; i<6; i++)
+		{
 			predmeti[getIndex(i)].postaviTezinu(predmeti[(i + 1) % 6].dohvTezinu() + t);
 			print(i);
 		}
@@ -153,8 +159,10 @@ int tezinaK, tezinaS;
 		
 		zapreminaS = 0;
 		tezinaS = 0;
-		for(i=1; i<=6;){
-			if(i % 2 == 0) {
+		for(i=1; i<=6;)
+		{
+			if(i % 2 == 0)
+			{
 				i++;
 				continue; 
 			}
@@ -170,8 +178,10 @@ int tezinaK, tezinaS;
 		zapreminaK = 0; 
 		tezinaK = 0;
 		i = 1;
-		for(i=1; i<=6; ){
-			if(i % 2 == 1) {
+		for(i=1; i<=6;)
+		{
+			if(i % 2 == 1)
+			{
 				i++;
 				continue; 
 			}
