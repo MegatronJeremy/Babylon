@@ -112,7 +112,7 @@
         </java>
     </target>
 
-    <property name="test-file" value="test303.mj"/>
+    <property name="test-file" value="test302.mj"/>
     <property name="test-file-path" value="${tests.dir}/${test-file}"/>
 
     <target name="run">

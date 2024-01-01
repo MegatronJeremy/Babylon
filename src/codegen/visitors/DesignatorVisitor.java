@@ -42,6 +42,7 @@ public class DesignatorVisitor extends VisitorAdaptor {
                 if (obj.getLevel() != 0) {
                     // invoke virtual function
                     // but first regen designator
+                    // TODO this will have side-effects - because of potential expr evaluation for arrays
                     designatorOpCall.getDesignator().traverseBottomUp(CodeGenerator.getInstance());
                     invokeVirtualFunction(obj);
                 } else {

@@ -23,10 +23,14 @@ public class StatementVisitor extends VisitorAdaptor {
     private Integer forBodyFixup;
     private CondFact forCondFact;
 
+    private boolean fixedUpLeftoverAND = false;
+
     private void fixupLeftoverAND() {
-        if (nextCondFixupListStack.isEmpty()) {
+        if (fixedUpLeftoverAND) {
             return;
         }
+
+        fixedUpLeftoverAND = true;
 
         // ALSO fixup all leftover AND false jump conditions
         Queue<Integer> nextCondFixupList = nextCondFixupListStack.pop();
@@ -93,8 +97,9 @@ public class StatementVisitor extends VisitorAdaptor {
         Integer nextIfFixup = ifFixupStack.pop();
         Code.fixup(nextIfFixup);
 
-        // ALSO fixup all leftover AND false jump conditions
+        // ALSO fixup all leftover AND false jump conditions - in case there is no else branch
         fixupLeftoverAND();
+        fixedUpLeftoverAND = false; // reset this - must be done here for current scope
     }
 
     public void visit(CondFactRelop condFactRelop) {

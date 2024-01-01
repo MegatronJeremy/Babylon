@@ -14,11 +14,9 @@ public class CodeGenerator extends VisitorAdaptor {
     private final VisitorAdaptor designatorVisitor = new DesignatorVisitor();
     private final VisitorAdaptor exprVisitor = new ExprVisitor();
     private final VisitorAdaptor classVisitor = new ClassVisitor();
-
     int mainFixupAddr;
     Integer mainPC = null;
     Obj currentClass = null;
-
     Map<Struct, Integer> vftpMap = new HashMap<>();
 
     private CodeGenerator() {

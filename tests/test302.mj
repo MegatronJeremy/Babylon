@@ -82,8 +82,10 @@ int a, curr;
 
 		// breaks when i == 4
 
-		if(i == 3 && verify()) print(-4);
-		else print(4);  // prints 4 only!
+		if(i == 4 && verify() == false) // prints 'v'
+		    if (i == 3 && verify()) print(-3);
+		    else print(5); // print 5 only!
+		else print(4);
 
 		read(niz[0]); // 1
 		read(niz[1]); // 2
