@@ -142,10 +142,10 @@ int a, curr;
 		print(Unpacking::niz3[1]); // prints 12
 		print(Unpacking::niz3[2]); // prints 18
 		print(eol);
-		
+
 		// Unpacking::niz3 = new int[1];
 		// [Unpacking::niz2[0],,Unpacking::niz2[Unpacking::niz[0]],*Unpacking::niz3] = Unpacking::niz; // runtime error!
-	
+
 	}
 }
 

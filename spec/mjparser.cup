@@ -184,7 +184,6 @@ VarName ::= (VarScalar) IDENT:varName
     | (VarArray) IDENT:varName LBRACKET RBRACKET
     ;
 
-// TODO classes
 ClassDecl ::= (ClassDecl) CLASS ClassName ExtendsClause LBRACE ClassBody RBRACE
     ;
 
@@ -274,7 +273,6 @@ StatementList ::= (StatementListExists) StatementList Statement
     | (StatementListEmpty)
     ;
 
-// TODO do if/for constructs later
 Statement ::= (StatementDesignator) DesignatorStatement SEMI
     | (StatementIfElse) StatementIfElseEntry IF LPAREN ConditionIf RPAREN Statement ElseStatementEntry ElseStatement
     | (StatementBreak) BREAK SEMI

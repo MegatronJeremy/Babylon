@@ -144,18 +144,26 @@ public class DesignatorVisitor extends VisitorAdaptor {
         // start from end - source array is already on top
         int startIndex = designatorExistsStack.size();
 
+        Obj helperA = TabExtended.getHelperA();
+        Obj helperB = TabExtended.getHelperB();
+
         Obj source = designatorAssignListStmt.getDesignator1().obj;
         Obj destination = designatorAssignListStmt.getDesignator().obj;
 
-        // load dst array and the src array
-        Code.load(destination);
-        Code.load(source);
-
         // first check if you went over the limit
-        Code.put(Code.dup); // duplicate array source
+        // load src array and the dst array
+        Code.load(source);
+        Code.store(helperA); // put source array in helperA
+
+        Code.load(destination); // load destination
+        Code.put(Code.dup);
         Code.put(Code.arraylength);
-        Code.loadConst(startIndex); // if (len > index) then ok
-        Code.putFalseJump(Code.le, 0); // jump over trap if ok
+        Code.loadConst(startIndex);
+        Code.put(Code.add); // numOfElems + dest arr size
+
+        Code.load(helperA); // load source again
+        Code.put(Code.arraylength); // load src length -> if (len == sizeof(left)) then ok
+        Code.putFalseJump(Code.ne, 0); // jump over trap if ok
         int fixupAddr = Code.pc - 2;
 
         // trap if failed condition check
@@ -165,8 +173,9 @@ public class DesignatorVisitor extends VisitorAdaptor {
 
         // start after check
         // centralized logic for designator assignment list here
-        Obj helperA = TabExtended.getHelperA();
-        Obj helperB = TabExtended.getHelperB();
+
+        // load source array (destination is on stack top)
+        Code.load(helperA);
 
         // put start index in helper A (index of source)
         Code.loadConst(startIndex);
