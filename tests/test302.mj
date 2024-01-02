@@ -63,6 +63,7 @@ int a, curr;
 			else print(-1);
 		a = 2;
 		niz = new int[3];
+		print(len(niz));
 		niz[0] = 1 * a; // niz[0] = 2
 		niz[1] = 2 * a; // niz[1] = 4
 		niz[2] = Addition::sum(niz[1], niz[0]) * a + 1; // niz[2] = 13

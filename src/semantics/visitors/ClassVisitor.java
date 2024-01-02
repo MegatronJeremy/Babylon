@@ -23,22 +23,23 @@ public class ClassVisitor extends VisitorAdaptor {
         TabExtended.chainLocalSymbols(semanticPass.currentClass.getType()); // this does everything
         TabExtended.closeScope();
 
-        // set everything to null
+        // reset everything
         semanticPass.currentClass = null;
         semanticPass.currentClassCoreName = null;
         semanticPass.currentClassSupertype = null;
+        semanticPass.currentMethodsToOverload.clear();
     }
 
     public void visit(ClassName className) {
         String qualifiedName = semanticPass.getQualifiedNameDeclaration(className.getClassName());
 
         // create a new user-defined type
-        Struct classStruct = new StructExtended(Struct.Class);
+        Struct classStruct = new StructExtended(Struct.Class, qualifiedName);
 
-        Obj classNode = TabExtended.insert(Obj.Type, qualifiedName, classStruct);
-        if (classNode == TabExtended.noObj) {
+        if (TabExtended.find(qualifiedName) != TabExtended.noObj) {
             LogUtils.logError("Class with name " + qualifiedName + " already declared", className);
         }
+        Obj classNode = TabExtended.insert(Obj.Type, qualifiedName, classStruct);
 
         // Prepare for static variable declaration
         semanticPass.currentClass = classNode;
@@ -62,6 +63,9 @@ public class ClassVisitor extends VisitorAdaptor {
 
         semanticPass.classCoreNames.put(currentClassType, coreClassName);
         semanticPass.currentClassCoreName = coreClassName;
+
+        // set name for toString to core class name
+        ((StructExtended) currentClassType).setName(coreClassName);
     }
 
     public void visit(ExtendsClauseEmpty extendsClauseEmpty) {
@@ -104,8 +108,10 @@ public class ClassVisitor extends VisitorAdaptor {
         // add virtual table function pointer
         TabExtended.insert(Obj.Fld, "@vftp", TabExtended.intType);
 
+        Struct currentClassType = this.semanticPass.currentClass.getType();
         Struct superClassType = semanticPass.currentClassSupertype;
         if (superClassType == null) {
+            currentClassType.setElementType(TabExtended.noType); // root class
             return;
         }
 
@@ -113,11 +119,14 @@ public class ClassVisitor extends VisitorAdaptor {
         if (superClassType.getKind() != Struct.Class) {
             LogUtils.logError("Extends clause only allowed with class type", staticInitListEmpty);
         } else {
-            Struct currentClassType = this.semanticPass.currentClass.getType();
-            currentClassType.setElementType(superClassType);
+            currentClassType.setElementType(superClassType); // set type from inherited class
 
             Collection<Obj> members = superClassType.getMembers();
             for (Obj obj : members) {
+                if (obj.getKind() == Obj.Meth) {
+                    semanticPass.currentMethodsToOverload.add(obj.getName());
+                }
+
                 Obj cloned = TabExtended.insert(obj.getKind(), obj.getName(), obj.getType());
                 cloned.setFpPos(obj.getFpPos()); // ensure this is ok for methods
 

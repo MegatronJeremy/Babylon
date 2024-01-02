@@ -3,6 +3,7 @@ package semantics.visitors;
 import ast.*;
 import rs.etf.pp1.symboltable.concepts.Obj;
 import rs.etf.pp1.symboltable.concepts.Struct;
+import semantics.decorators.StructExtended;
 import semantics.decorators.TabExtended;
 import semantics.util.ObjList;
 import semantics.util.VisitorUtils;
@@ -26,7 +27,7 @@ public class VarDeclVisitor extends VisitorAdaptor {
         String qualifiedName = semanticPass.getQualifiedNameDeclaration(varArray.getVarName());
 
         // Set elemType to noType for now
-        Struct varType = new Struct(Struct.Array, TabExtended.noType);
+        Struct varType = new StructExtended(Struct.Array, TabExtended.noType, "arr");
 
         int objKind = semanticPass.currentVarDeclObjKind();
         varArray.obj = new Obj(objKind, qualifiedName, varType);

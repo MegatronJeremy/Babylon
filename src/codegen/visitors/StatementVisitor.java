@@ -5,6 +5,7 @@ import rs.etf.pp1.mj.runtime.Code;
 import rs.etf.pp1.symboltable.Tab;
 import rs.etf.pp1.symboltable.concepts.Obj;
 import rs.etf.pp1.symboltable.concepts.Struct;
+import semantics.decorators.TabExtended;
 
 import java.util.LinkedList;
 import java.util.Queue;
@@ -207,7 +208,7 @@ public class StatementVisitor extends VisitorAdaptor {
     public void visit(StatementPrint statementPrint) {
         Struct type = statementPrint.getExpr().struct;
 
-        if (type != Tab.charType) {
+        if (type != TabExtended.charType) {
             Code.loadConst(5);
             Code.put(Code.print);
         } else {

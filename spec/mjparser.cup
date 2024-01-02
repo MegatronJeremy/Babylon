@@ -239,7 +239,7 @@ MethodDeclList ::= (MethodDeclListExists) MethodDeclList MethodDecl
 MethodDecl ::= (MethodDecl) MethodTypeName LPAREN FormParsOpt RPAREN VarDeclList LBRACE StatementList RBRACE
     ;
 
-// Open scope, declare method
+// Open scope, start method declaration
 MethodTypeName ::= (MethodTypeName) MethodType IDENT:methodName
     ;
 

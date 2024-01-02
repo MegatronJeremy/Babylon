@@ -28,7 +28,7 @@ public class ProgramVisitor extends VisitorAdaptor {
         this.semanticPass.nVars = TabExtended.currentScope().getnVars();
 
         // Check for main function validity
-        Obj mainFunc = TabExtended.find("main");
+        Obj mainFunc = TabExtended.find("main$");
 
         if (mainFunc == TabExtended.noObj) {
             LogUtils.logError("Global namespace main function declaration not found");

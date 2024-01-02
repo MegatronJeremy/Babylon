@@ -3,6 +3,7 @@ package semantics.visitors;
 import ast.*;
 import rs.etf.pp1.mj.runtime.Code;
 import rs.etf.pp1.symboltable.concepts.Struct;
+import semantics.decorators.StructExtended;
 import semantics.decorators.TabExtended;
 import semantics.util.LogUtils;
 
@@ -151,7 +152,7 @@ public class ExprVisitor extends VisitorAdaptor {
             factorNewArray.struct = TabExtended.noType;
         } else {
             // Create new array type
-            factorNewArray.struct = new Struct(Struct.Array, factorNewArray.getType().struct);
+            factorNewArray.struct = new StructExtended(Struct.Array, factorNewArray.getType().struct, "arr");
         }
     }
 

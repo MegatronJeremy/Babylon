@@ -5,6 +5,7 @@ program test_303
 namespace Predmeti
 {
     const int cinilac = 4, delilac = 3;
+   // const int cinilac = 5;
 
 	class Predmet
 	{
@@ -14,12 +15,13 @@ namespace Predmeti
 			 void postaviTezinu(int tezina) {this.tezina = tezina;}  
 			 void ucitajTezinu() { read(tezina); }
 			 int zapremina() { return 0;}
+			 char vrsta() { return '0'; }
 			 int Q() {return zapremina() * tezina;} // this NEEDS TO BE PREPENDED HERE
 			 void postaviVrstu(char vrsta) {this.vrsta = vrsta;}
-			 char dohvVrstu() { return vrsta; }
+			 char dohvVrstu() { return vrsta(); }
 			 int dohvTezinu() { return tezina; }
 			 void ispisi() {
-				print(vrsta);
+				print(dohvVrstu());
 				print(Q()); // prints weight? (needed for sum)
 			 }
 		}
@@ -30,7 +32,8 @@ namespace Predmeti
 		int r;
 		{
 			 void postaviPoluprecnik(int r) {this.r = r; }
-			 
+			 char vrsta() { return 'S'; }
+
 			 int zapremina()
 				int z;
 			{
@@ -43,9 +46,10 @@ namespace Predmeti
 	class Kvadar extends Predmet
 	{
 		 int a, b, c;
-		 Sfera s;
+		 Predmet s;
 		{
 			 void postaviStranice(int a, int b, int c) {this.a = a; this.b = b; this.c = c;}
+			 char vrsta() { return 'K'; }
 			 int zapremina()
 				int z;
 			{
@@ -54,7 +58,21 @@ namespace Predmeti
 			}
 		}
 	}
-	
+
+	class MegaKvadar extends Kvadar
+	{
+	    int d;
+	    {
+	        char vrsta() { return 'M'; }
+	        void ispisi() {
+	            print(dohvVrstu());
+	            print(tezina);
+	            print(666);
+	        }
+	    }
+	}
+
+
 	{}
 }
 
@@ -130,14 +148,15 @@ int tezinaK, tezinaS;
 		k1 = new Predmeti::Kvadar();
 		k1.postaviStranice(2,3,4);
 		k1.postaviVrstu('k');
-		k2 = new Predmeti::Kvadar();
+		k2 = new Predmeti::MegaKvadar();
 		k2.postaviStranice(3,4,5);
 		k2.postaviVrstu('k');
 
         print(eol);
         // testing nesting
-		k2.s = new Predmeti::Sfera();
+		k2.s = new Predmeti::MegaKvadar();
 		k2.s.postaviVrstu('L');
+		k2.s.ucitajTezinu();
 		k2.s.ispisi();
 		print(eol);
 

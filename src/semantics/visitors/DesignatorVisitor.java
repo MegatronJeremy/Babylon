@@ -22,14 +22,69 @@ public class DesignatorVisitor extends VisitorAdaptor {
         this.semanticPass = semanticPass;
     }
 
-    private Obj findDesignator(String designName, SyntaxNode syntaxNode) {
-        Obj typeNode = TabExtended.find(designName);
+    private Obj findDesignator(String qualifiedName, String unqualifiedName, SyntaxNode syntaxNode) {
+        Obj obj = TabExtended.find(qualifiedName);
 
+        if (obj == TabExtended.noObj) {
+            obj = findDesignator(unqualifiedName, syntaxNode);
+        }
+        return obj;
+    }
+
+    private Obj findDesignator(String designName, SyntaxNode syntaxNode) {
+        if (semanticPass.designatorNameInFunctionCall(syntaxNode)) {
+            // two parents up -> must be a function call (cannot be through class/array field indirection)
+            // delay until actual parameters scanned
+            // at least this will be always called
+            semanticPass.currentMethodCalledStack.push(designName);
+            semanticPass.currentMethodCallIsClassStack.push(false);
+
+            return TabExtended.noObj;
+        }
+
+        Obj typeNode = TabExtended.find(designName);
         if (typeNode == TabExtended.noObj) {
-            LogUtils.logError("Variable " + designName + " not declared.", syntaxNode);
+            LogUtils.logError("Symbol " + designName + " not declared.", syntaxNode);
         }
 
         return typeNode;
+    }
+
+    private Obj findDesignatorInClass(DesignatorIndOpDot designatorIndOp, String identifier, SyntaxNode syntaxNode) {
+        Obj design = designatorIndOp.getDesignator().obj;
+        Struct type = design.getType();
+
+        Obj obj;
+        if (Objects.equals(design.getName(), "this")) {
+            // special case
+            Scope scopeToSearch = TabExtended.currentScope.getOuter(); // look in outer scope (not yet chained)
+            obj = scopeToSearch.findSymbol(identifier);
+        } else if (design.getKind() != Obj.Type) {
+            // is normal member
+            obj = type.getMembersTable().searchKey(identifier);
+        } else {
+            // is static member - name is global
+            String name = semanticPass.getCoreClassName(type) + "." + identifier;
+            obj = TabExtended.find(name);
+        }
+
+        if (obj == null) {
+            LogUtils.logError("Symbol "
+                            + identifier
+                            + " is not a class member",
+                    syntaxNode);
+        } else if (design.getKind() == Obj.Type &&
+                !semanticPass.staticClassFields.get(design.getName()).contains(obj.getName())) {
+            // can only return static class field
+            LogUtils.logError("Symbol "
+                            + obj.getName()
+                            + " is not a static class field",
+                    syntaxNode);
+
+            obj = null;
+        }
+
+        return obj;
     }
 
     public void visit(DesignatorAssignListStmt designatorAssignListStmt) {
@@ -115,14 +170,34 @@ public class DesignatorVisitor extends VisitorAdaptor {
     }
 
     public void visit(DesignatorOpCall designatorOpCall) {
-        Obj func = designatorOpCall.getDesignator().obj;
+        // form true name
+        assert !semanticPass.currentMethodCalledStack.isEmpty();
+        StringBuilder qualifiedFuncNameSB = new StringBuilder(semanticPass.currentMethodCalledStack.pop());
+
+        StructList structList = designatorOpCall.getActParsOpt().structlist;
+        for (Struct type : structList) {
+            qualifiedFuncNameSB.append("$").append(type.toString());
+        }
+        qualifiedFuncNameSB.append("$");
+        String fullFuncName = qualifiedFuncNameSB.toString();
+
+        // TODO make this work with classes as well
+        Obj func;
+        if (semanticPass.currentMethodCallIsClassStack.pop()) {
+            // find in class object
+            DesignatorIndOpDot designatorIndOpDot = semanticPass.currentMethodCallNodeStack.pop();
+            func = findDesignatorInClass(designatorIndOpDot, fullFuncName, designatorOpCall);
+        } else {
+            // find in scope
+            String qualifiedFuncName = semanticPass.getNamespaceQualifiedName(fullFuncName);
+            func = findDesignator(qualifiedFuncName, fullFuncName, designatorOpCall);
+        }
+
         boolean validCall = true;
-
         if (Obj.Meth == func.getKind()) {
-            LogUtils.logInfo("Found function call " + func.getName(), designatorOpCall);
-
-            StructList structList = designatorOpCall.getActParsOpt().structlist;
             Collection<Obj> localSymbols = func.getLocalSymbols();
+
+            LogUtils.logInfo("Found function call " + func.getName(), designatorOpCall);
 
             int actPars = structList.size();
             int formPars = func.getFpPos();
@@ -170,10 +245,13 @@ public class DesignatorVisitor extends VisitorAdaptor {
                 designatorOpCall.obj = func;
             }
         } else {
-            LogUtils.logError("Designator " + func.getName() + " is not a function", designatorOpCall);
+            LogUtils.logError("Designator " + fullFuncName + " is not a function", designatorOpCall);
 
             validCall = false;
         }
+
+        // assign in any case
+        designatorOpCall.getDesignator().obj = func;
 
         if (!validCall) {
             designatorOpCall.obj = TabExtended.noObj;
@@ -211,35 +289,16 @@ public class DesignatorVisitor extends VisitorAdaptor {
             return;
         }
 
-        Obj obj;
+        Obj obj = null;
 
-        if (Objects.equals(design.getName(), "this")) {
-            // special case
-            Scope scopeToSearch = TabExtended.currentScope.getOuter(); // look in outer scope (not yet chained)
-            obj = scopeToSearch.findSymbol(identifier);
-        } else if (design.getKind() != Obj.Type) {
-            // is normal member
-            obj = type.getMembersTable().searchKey(identifier);
+        // skip this for now if in function call
+        if (!semanticPass.designatorIndOpInFunctionCall(designatorIndOp)) {
+            obj = findDesignatorInClass(designatorIndOp, identifier, designatorIndOp);
         } else {
-            // is static member - name is global
-            String name = semanticPass.getCoreClassName(type) + "." + identifier;
-            obj = TabExtended.find(name);
-        }
-
-        if (obj == null) {
-            LogUtils.logError("Variable "
-                            + identifier
-                            + " is not a class member",
-                    designatorIndOp);
-        } else if (design.getKind() == Obj.Type &&
-                !semanticPass.staticClassFields.get(design.getName()).contains(obj.getName())) {
-            // can only return static class field
-            LogUtils.logError("Variable "
-                            + obj.getName()
-                            + " is not a static class field",
-                    designatorIndOp);
-
-            obj = null;
+            // save for later
+            semanticPass.currentMethodCalledStack.push(identifier);
+            semanticPass.currentMethodCallIsClassStack.push(true);
+            semanticPass.currentMethodCallNodeStack.push(designatorIndOp);
         }
 
         if (obj == null) {
@@ -255,7 +314,7 @@ public class DesignatorVisitor extends VisitorAdaptor {
 
         if (kind != Struct.Array) {
             LogUtils.logError("Invalid array indexing operation with type " + LogUtils.structKindToString(kind)
-                    + " of variable " + design.getName(), designatorIndOp);
+                    + " of symbol " + design.getName(), designatorIndOp);
 
             designatorIndOp.obj = TabExtended.noObj;
         } else {
@@ -286,12 +345,7 @@ public class DesignatorVisitor extends VisitorAdaptor {
         // First look for implicit namespace and then for global namespace if not found
         String designatorName = designator.getDesignName();
         String qualifiedName = semanticPass.getQualifiedNameLookup(designatorName);
-        Obj obj = TabExtended.find(qualifiedName);
 
-        if (obj == TabExtended.noObj) {
-            obj = findDesignator(designatorName, designator);
-        }
-
-        designator.obj = obj;
+        designator.obj = findDesignator(qualifiedName, designatorName, designator);
     }
 }

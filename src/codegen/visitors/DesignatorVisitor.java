@@ -30,11 +30,11 @@ public class DesignatorVisitor extends VisitorAdaptor {
         // ord, chr and len are inserted as inline methods
         Obj obj = designatorOpCall.obj;
         switch (obj.getName()) {
-            case "ord":
-            case "chr":
+            case "ord$char$":
+            case "chr$int$":
                 // do nothing - implicitly cast
                 break;
-            case "len":
+            case "len$arr$":
                 Code.put(Code.arraylength);
                 break;
             default:

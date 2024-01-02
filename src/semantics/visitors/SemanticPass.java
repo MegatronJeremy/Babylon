@@ -9,29 +9,36 @@ import semantics.decorators.TabExtended;
 import semantics.util.LogUtils;
 import semantics.util.StaticClassFields;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class SemanticPass extends VisitorAdaptor {
 
     private static SemanticPass instance = null;
-    VisitorAdaptor programVisitor = new ProgramVisitor(this);
-    VisitorAdaptor namespaceVisitor = new NamespaceVisitor(this);
-    VisitorAdaptor constDeclVisitor = new ConstDeclVisitor(this);
-    VisitorAdaptor varDeclVisitor = new VarDeclVisitor(this);
-    VisitorAdaptor typeVisitor = new TypeVisitor(this);
-    VisitorAdaptor methodVisitor = new MethodVisitor(this);
-    VisitorAdaptor statementVisitor = new StatementVisitor(this);
-    VisitorAdaptor designatorVisitor = new DesignatorVisitor(this);
-    VisitorAdaptor exprVisitor = new ExprVisitor(this);
-    VisitorAdaptor classVisitor = new ClassVisitor(this);
-    VisitorAdaptor exprCodeVisitor = new ExprCodeVisitor();
+    // but nested calls are possible!
+    final VisitorAdaptor programVisitor = new ProgramVisitor(this);
+    final VisitorAdaptor namespaceVisitor = new NamespaceVisitor(this);
+    final VisitorAdaptor constDeclVisitor = new ConstDeclVisitor(this);
+    final VisitorAdaptor varDeclVisitor = new VarDeclVisitor(this);
+    final VisitorAdaptor typeVisitor = new TypeVisitor(this);
+    final VisitorAdaptor methodVisitor = new MethodVisitor(this);
+    final VisitorAdaptor statementVisitor = new StatementVisitor(this);
+    final VisitorAdaptor designatorVisitor = new DesignatorVisitor(this);
+    final VisitorAdaptor exprVisitor = new ExprVisitor(this);
+    final VisitorAdaptor classVisitor = new ClassVisitor(this);
+    final VisitorAdaptor exprCodeVisitor = new ExprCodeVisitor();
+    final Stack<String> currentMethodCalledStack = new Stack<>();
+    final Stack<Boolean> currentMethodCallIsClassStack = new Stack<>();
+    final Stack<DesignatorIndOpDot> currentMethodCallNodeStack = new Stack<>();
+    final Set<String> currentMethodsToOverload = new HashSet<>();
+    final Map<Struct, String> classCoreNames = new HashMap<>();
     Obj currentMethod = null;
+    // nested function declarations not possible
+    String currentMethodName = null;
+    MethodTypeName currentMethodTypeName = null;
+    // no inner classes - no need for stack
     Obj currentClass = null;
     Struct currentClassSupertype = null;
     String currentClassCoreName = null;
-    Map<Struct, String> classCoreNames = new HashMap<>();
     boolean returnFound = false;
     boolean inForLoop = false;
     boolean inStaticDef = false;
@@ -53,6 +60,23 @@ public class SemanticPass extends VisitorAdaptor {
 
     public int getVars() {
         return nVars;
+    }
+
+    public boolean canDeclareMethod(String name) {
+        if (currentMethodsToOverload.contains(name)) {
+            currentMethodsToOverload.remove(name);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    boolean designatorNameInFunctionCall(SyntaxNode designatorName) {
+        return designatorName.getParent().getParent().getClass() == DesignatorOpCall.class;
+    }
+
+    boolean designatorIndOpInFunctionCall(SyntaxNode designatorIndOpDot) {
+        return designatorIndOpDot.getParent().getClass() == DesignatorOpCall.class;
     }
 
     String getNamespaceQualifiedName(String name) {

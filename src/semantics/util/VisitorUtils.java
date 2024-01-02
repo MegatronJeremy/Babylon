@@ -4,6 +4,7 @@ import ast.SyntaxNode;
 import rs.etf.pp1.symboltable.concepts.Obj;
 import rs.etf.pp1.symboltable.concepts.Struct;
 import semantics.decorators.TabExtended;
+import semantics.visitors.SemanticPass;
 
 public class VisitorUtils {
 
@@ -16,18 +17,16 @@ public class VisitorUtils {
             currentType = declType;
         }
 
-        Obj objNode = TabExtended.insert(obj.getKind(), obj.getName(), currentType);
+        Obj objNode = TabExtended.insert(obj.getKind(), obj.getName(), currentType, syntaxNode);
         TabExtended.currentScope().addToLocals(objNode);
-
-        checkAlreadyDeclared(obj, syntaxNode);
     }
 
-    public static void checkAlreadyDeclared(Obj obj, SyntaxNode syntaxNode) {
-        if (obj == TabExtended.noObj) {
-            LogUtils.logError("Variable with name "
-                    + obj.getName() + " already declared", syntaxNode);
+    public static void checkAlreadyDeclared(String name, SyntaxNode syntaxNode) {
+        if (TabExtended.currentScope.findSymbol(name) != null && !SemanticPass.getInstance().canDeclareMethod(name)) {
+            LogUtils.logError("Symbol with name "
+                    + name + " already declared", syntaxNode);
         } else {
-            LogUtils.logInfo("Declared variable " + obj.getName(), syntaxNode);
+            LogUtils.logInfo("Declared symbol " + name, syntaxNode);
         }
     }
 
