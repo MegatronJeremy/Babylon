@@ -119,9 +119,9 @@
         <java classpathref="build-classpath" jar="${build.jar.dir}/MJCompiler.jar" fork="true">
             <arg value="${test-file-path}"/>
             <!-- Enable dumping syntax tree symbol table-->
-            <arg value="-dump"/>
+            <!--            <arg value="-dump"/>-->
             <!--            <arg value="tree"/>-->
-            <arg value="table"/>
+            <!--            <arg value="table"/>-->
             <!-- Enable assertions -->
             <jvmarg value="-ea"/>
         </java>

@@ -49,15 +49,18 @@ public class ExprVisitor extends VisitorAdaptor {
 
         if (!lType.compatibleWith(rType)) {
             LogUtils.logError("Incompatible expression for types "
-                            + LogUtils.structKindToString(lType.getKind())
-                            + " and " + LogUtils.structKindToString(rType.getKind()),
+                            + lType
+                            + " and "
+                            + rType,
                     condFactRelop);
 
             errorFound = true;
-        } else if ((lType.getKind() == Struct.Class || lType.getKind() == Struct.Array) &&
+        } else if (lType.isRefType() &&
                 !Objects.equals(relationOp, Code.eq) && !Objects.equals(relationOp, Code.ne)) {
             LogUtils.logError("Incompatible relation operator for type "
-                            + LogUtils.structKindToString(lType.getKind()),
+                            + lType
+                            + " and "
+                            + rType,
                     condFactRelop);
 
             errorFound = true;

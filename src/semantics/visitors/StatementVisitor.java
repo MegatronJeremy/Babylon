@@ -31,7 +31,6 @@ public class StatementVisitor extends VisitorAdaptor {
     }
 
     public void visit(StatementBreak statementBreak) {
-        // TODO see why this returns line 0
         if (!semanticPass.inForLoop) {
             LogUtils.logError("Break usage not allowed outside of for loop",
                     statementBreak);
@@ -107,13 +106,12 @@ public class StatementVisitor extends VisitorAdaptor {
         Struct currentMethodType = this.semanticPass.currentMethod.getType();
         Struct returnType = statementReturnExprExists.getExpr().struct;
 
-        if (!currentMethodType.compatibleWith(returnType)) {
-            String kind = LogUtils.structKindToString(returnType.getKind());
-
-            LogUtils.logError("Return expression type "
-                            + kind
-                            + " is not compatible "
-                            + "with the return type of function "
+        if (!returnType.assignableTo(currentMethodType)) {
+            LogUtils.logError("Return type "
+                            + returnType
+                            + " is not assignable to the return type "
+                            + currentMethodType
+                            + " of function "
                             + this.semanticPass.currentMethod.getName(),
                     statementReturnExprExists);
         }

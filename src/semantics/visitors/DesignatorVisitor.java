@@ -10,9 +10,7 @@ import semantics.util.ObjList;
 import semantics.util.StructList;
 import semantics.util.VisitorUtils;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Objects;
+import java.util.*;
 
 public class DesignatorVisitor extends VisitorAdaptor {
 
@@ -50,18 +48,19 @@ public class DesignatorVisitor extends VisitorAdaptor {
         return typeNode;
     }
 
-    private Obj findDesignatorInClass(DesignatorIndOpDot designatorIndOp, String identifier, SyntaxNode syntaxNode) {
+    private Obj findDesignatorInClass(boolean reportError, DesignatorIndOpDot designatorIndOp, String identifier, SyntaxNode syntaxNode) {
         Obj design = designatorIndOp.getDesignator().obj;
         Struct type = design.getType();
 
         Obj obj;
-        if (Objects.equals(design.getName(), "this")) {
-            // special case
-            Scope scopeToSearch = TabExtended.currentScope.getOuter(); // look in outer scope (not yet chained)
-            obj = scopeToSearch.findSymbol(identifier);
-        } else if (design.getKind() != Obj.Type) {
+        if (design.getKind() != Obj.Type) {
             // is normal member
             obj = type.getMembersTable().searchKey(identifier);
+            if (obj == null) {
+                // Edge case: try finding in outer scope - calling while class table is not yet formed
+                Scope scopeToSearch = TabExtended.currentScope.getOuter(); // look in outer scope (not yet chained)
+                obj = scopeToSearch.findSymbol(identifier);
+            }
         } else {
             // is static member - name is global
             String name = type + "." + identifier;
@@ -69,10 +68,12 @@ public class DesignatorVisitor extends VisitorAdaptor {
         }
 
         if (obj == null) {
-            LogUtils.logError("Symbol "
-                            + identifier
-                            + " is not a class member",
-                    syntaxNode);
+            if (reportError) {
+                LogUtils.logError("Symbol "
+                                + identifier
+                                + " is not a class member",
+                        syntaxNode);
+            }
 
             obj = TabExtended.noObj;
         }
@@ -165,88 +166,119 @@ public class DesignatorVisitor extends VisitorAdaptor {
     public void visit(DesignatorOpCall designatorOpCall) {
         // form true name
         assert !semanticPass.currentMethodCalledStack.isEmpty();
-        StringBuilder qualifiedFuncNameSB = new StringBuilder(semanticPass.currentMethodCalledStack.pop());
+        Queue<StringBuilder> qualifiedFuncNameSBQueue = new LinkedList<>();
+        qualifiedFuncNameSBQueue.add(new StringBuilder(semanticPass.currentMethodCalledStack.pop()));
 
         StructList structList = designatorOpCall.getActParsOpt().structlist;
         for (Struct type : structList) {
-            qualifiedFuncNameSB.append("$").append(type.toString());
-        }
-        qualifiedFuncNameSB.append("$");
-        String fullFuncName = qualifiedFuncNameSB.toString();
+            int i = qualifiedFuncNameSBQueue.size();
+            while (i-- > 0) {
+                StringBuilder qualifiedFuncNameSB = qualifiedFuncNameSBQueue.poll();
+                assert qualifiedFuncNameSB != null;
 
-        Obj func;
-        if (semanticPass.currentMethodCallIsClassStack.pop()) {
-            // find in class object
-            DesignatorIndOpDot designatorIndOpDot = semanticPass.currentMethodCallNodeStack.pop();
-            func = findDesignatorInClass(designatorIndOpDot, fullFuncName, designatorOpCall);
-        } else {
-            // find in scope
-            String qualifiedFuncName = semanticPass.getNamespaceQualifiedName(fullFuncName);
-            func = findDesignator(qualifiedFuncName, fullFuncName, designatorOpCall);
-        }
+                StringBuilder baseFuncNameSB = new StringBuilder(qualifiedFuncNameSB);
+                baseFuncNameSB.append("$").append(type);
+                qualifiedFuncNameSBQueue.add(baseFuncNameSB);
 
-        boolean validCall = true;
-        if (Obj.Meth == func.getKind()) {
-            Collection<Obj> localSymbols = func.getLocalSymbols();
+                // for classes add all supertypes
+                if (type.getKind() == Struct.Class) {
+                    Struct superType = type.getElemType();
+                    while (superType != TabExtended.noType) {
+                        StringBuilder superFuncNameSB = new StringBuilder(qualifiedFuncNameSB);
+                        superFuncNameSB.append("$").append(superType);
+                        qualifiedFuncNameSBQueue.add(superFuncNameSB);
 
-            LogUtils.logInfo("Found function call " + func.getName(), designatorOpCall);
-
-            int actPars = structList.size();
-            int formPars = func.getFpPos();
-
-            boolean thisSkipped = true;
-            if (formPars > 0) {
-                Iterator<Obj> iter = localSymbols.iterator();
-                if (iter.hasNext()) {
-                    // handle special case when method has hidden this parameter
-                    String name = iter.next().getName();
-                    if (Objects.equals(name, "this")) {
-                        formPars--;
-                        thisSkipped = false;
+                        superType = superType.getElemType();
                     }
                 }
             }
+        }
+        boolean currentMethodCallIsClass = semanticPass.currentMethodCallIsClassStack.pop();
+        DesignatorIndOpDot designatorIndOpDot = null;
+        if (currentMethodCallIsClass) {
+            designatorIndOpDot = semanticPass.currentMethodCallNodeStack.pop();
+        }
 
-            if (formPars != actPars) {
-                LogUtils.logError("Expected " + formPars + " parameter(s), but got " + actPars, designatorOpCall);
+        while (!qualifiedFuncNameSBQueue.isEmpty()) {
+            StringBuilder qualifiedFuncNameSB = qualifiedFuncNameSBQueue.poll();
+
+            qualifiedFuncNameSB.append("$");
+            String fullFuncName = qualifiedFuncNameSB.toString();
+
+            Obj func;
+            if (currentMethodCallIsClass) {
+                // find in class object
+                func = findDesignatorInClass(false, designatorIndOpDot, fullFuncName, designatorOpCall);
+            } else {
+                // find in scope
+                String qualifiedFuncName = semanticPass.getNamespaceQualifiedName(fullFuncName);
+                func = findDesignator(qualifiedFuncName, fullFuncName, designatorOpCall);
+            }
+
+            boolean validCall = true;
+            if (Obj.Meth == func.getKind()) {
+                Collection<Obj> localSymbols = func.getLocalSymbols();
+
+                LogUtils.logInfo("Found function call " + func.getName(), designatorOpCall);
+
+                int actPars = structList.size();
+                int formPars = func.getFpPos();
+
+                boolean thisSkipped = true;
+                if (formPars > 0) {
+                    Iterator<Obj> iter = localSymbols.iterator();
+                    if (iter.hasNext()) {
+                        // handle special case when method has hidden this parameter
+                        String name = iter.next().getName();
+                        if (Objects.equals(name, "this")) {
+                            formPars--;
+                            thisSkipped = false;
+                        }
+                    }
+                }
+
+                if (formPars != actPars) {
+                    LogUtils.logError("Expected " + formPars + " parameter(s), but got " + actPars, designatorOpCall);
+                } else {
+                    int i = 0, sz = structList.size();
+                    for (Obj obj : localSymbols) {
+                        if (i == sz) {
+                            break;
+                        }
+
+                        if (!thisSkipped) {
+                            thisSkipped = true;
+                            continue;
+                        }
+
+                        Struct lType = obj.getType();
+                        Struct rType = structList.get(i);
+
+                        if (!VisitorUtils.checkAssignability(lType, rType, designatorOpCall)) {
+                            validCall = false;
+                        }
+
+                        i = i + 1;
+                    }
+
+                    if (validCall) {
+                        // call is valid
+                        designatorOpCall.obj = func;
+                        designatorOpCall.getDesignator().obj = func;
+                        return;
+                    }
+                }
+
+                // call is not valid
+                designatorOpCall.obj = TabExtended.noObj;
+                designatorOpCall.getDesignator().obj = TabExtended.noObj;
+                return;
+            } else if (func != TabExtended.noObj || qualifiedFuncNameSBQueue.isEmpty()) {
+                LogUtils.logError("Designator " + fullFuncName + " is not a function", designatorOpCall);
 
                 designatorOpCall.obj = TabExtended.noObj;
-                validCall = false;
-            } else {
-                int i = 0, sz = structList.size();
-                for (Obj obj : localSymbols) {
-                    if (i == sz) {
-                        break;
-                    }
-
-                    if (!thisSkipped) {
-                        thisSkipped = true;
-                        continue;
-                    }
-
-                    Struct lType = obj.getType();
-                    Struct rType = structList.get(i);
-
-                    if (!VisitorUtils.checkAssignability(lType, rType, designatorOpCall)) {
-                        validCall = false;
-                    }
-
-                    i = i + 1;
-                }
-
-                designatorOpCall.obj = func;
+                return;
             }
-        } else {
-            LogUtils.logError("Designator " + fullFuncName + " is not a function", designatorOpCall);
-
-            validCall = false;
-        }
-
-        // assign in any case
-        designatorOpCall.getDesignator().obj = func;
-
-        if (!validCall) {
-            designatorOpCall.obj = TabExtended.noObj;
         }
     }
 
@@ -278,6 +310,8 @@ public class DesignatorVisitor extends VisitorAdaptor {
         if (type.getKind() != Struct.Class) {
             LogUtils.logError("Dot operation only allowed on class type",
                     designatorIndOp);
+            designatorIndOp.obj = TabExtended.noObj;
+
             return;
         }
 
@@ -285,7 +319,7 @@ public class DesignatorVisitor extends VisitorAdaptor {
 
         // skip this for now if in function call
         if (!semanticPass.designatorIndOpInFunctionCall(designatorIndOp)) {
-            obj = findDesignatorInClass(designatorIndOp, identifier, designatorIndOp);
+            obj = findDesignatorInClass(true, designatorIndOp, identifier, designatorIndOp);
         } else {
             // save for later
             semanticPass.currentMethodCalledStack.push(identifier);

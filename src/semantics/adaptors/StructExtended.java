@@ -26,6 +26,19 @@ public class StructExtended extends Struct {
         super(kind, members);
     }
 
+    private boolean checkClassAssignability(Struct src, Struct dst) {
+        // find if dest class exists in src hierarchy
+        Struct currType = src;
+        while (currType != TabExtended.noType) {
+            // compare names in hierarchy
+            if (Objects.equals(currType.toString(), dst.toString()))
+                return true;
+            currType = currType.getElemType(); // go up the hierarchy
+        }
+
+        return false;
+    }
+
     public String getName() {
         return name;
     }
@@ -39,22 +52,22 @@ public class StructExtended extends Struct {
         return name;
     }
 
+    public boolean compatibleWith(Struct other) {
+        if (this.getKind() == Class && other.getKind() == Class &&
+                (checkClassAssignability(this, other) || checkClassAssignability(other, this))) {
+            return true;
+        }
+
+        return super.compatibleWith(other);
+    }
+
     @Override
     public boolean assignableTo(Struct dest) {
         // override special case when object of inherited class is assigned to base class
-        if (this.getKind() == Class && dest.getKind() == Class) {
-            // find if dest class exists in src hierarchy
-            Struct currType = this;
-            while (currType != TabExtended.noType) {
-                // compare names in hierarchy
-                if (Objects.equals(currType.toString(), dest.toString()))
-                    return true;
-                currType = currType.getElemType(); // go up the hierarchy
-            }
-
-            return false;
-        } else {
-            return super.assignableTo(dest);
+        if (this.getKind() == Class && dest.getKind() == Class && checkClassAssignability(this, dest)) {
+            return true;
         }
+
+        return super.assignableTo(dest);
     }
 }

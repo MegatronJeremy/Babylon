@@ -61,7 +61,7 @@ public class MJParserTest {
                 return;
             }
 
-            // Do a semantic pass if lexing was succesful
+            // Do a semantic pass if lexing was successful
             TabExtended.init();
             SemanticPass semanticPass = SemanticPass.getInstance();
             program.traverseBottomUp(semanticPass);
