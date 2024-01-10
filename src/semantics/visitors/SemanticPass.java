@@ -5,11 +5,12 @@ import codegen.visitors.ExprCodeVisitor;
 import rs.etf.pp1.symboltable.concepts.Obj;
 import rs.etf.pp1.symboltable.concepts.Scope;
 import rs.etf.pp1.symboltable.concepts.Struct;
-import semantics.decorators.TabExtended;
+import semantics.adaptors.TabExtended;
 import semantics.util.LogUtils;
-import semantics.util.StaticClassFields;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Stack;
 
 public class SemanticPass extends VisitorAdaptor {
 
@@ -29,15 +30,13 @@ public class SemanticPass extends VisitorAdaptor {
     final Stack<String> currentMethodCalledStack = new Stack<>();
     final Stack<Boolean> currentMethodCallIsClassStack = new Stack<>();
     final Stack<DesignatorIndOpDot> currentMethodCallNodeStack = new Stack<>();
-    final Set<String> currentMethodsToOverload = new HashSet<>();
-    final Map<Struct, String> classCoreNames = new HashMap<>();
+    final Map<String, Struct> currentMethodsToOverload = new HashMap<>();
     Obj currentMethod = null;
     // nested function declarations not possible
     String currentMethodName = null;
     MethodTypeName currentMethodTypeName = null;
     // no inner classes - no need for stack
     Obj currentClass = null;
-    Struct currentClassSupertype = null;
     String currentClassCoreName = null;
     boolean returnFound = false;
     boolean inForLoop = false;
@@ -45,7 +44,6 @@ public class SemanticPass extends VisitorAdaptor {
     int nVars = 0;
     String currentNamespace = "";
     Scope programScope = null;
-    StaticClassFields staticClassFields = new StaticClassFields();
 
     private SemanticPass() {
     }
@@ -62,13 +60,18 @@ public class SemanticPass extends VisitorAdaptor {
         return nVars;
     }
 
-    public boolean canDeclareMethod(String name) {
-        if (currentMethodsToOverload.contains(name)) {
-            currentMethodsToOverload.remove(name);
-            return true;
-        } else {
-            return false;
+    public boolean canDeclareMethod(String name, Struct rType) {
+        if (currentMethodsToOverload.containsKey(name)) {
+            Struct lType = currentMethodsToOverload.get(name);
+
+            if (rType.assignableTo(lType)) {
+                LogUtils.logInfo("Overloading function " + name + " with return type " + lType);
+                currentMethodsToOverload.remove(name);
+
+                return true;
+            }
         }
+        return false;
     }
 
     boolean designatorNameInFunctionCall(SyntaxNode designatorName) {
@@ -88,7 +91,7 @@ public class SemanticPass extends VisitorAdaptor {
             assert currentClass != null;
 
             // extra qualifier for static fields
-            name = currentClass.getName() + "." + name;
+            return currentClass.getName() + "." + name;
         }
 
         if (TabExtended.currentScope == programScope) {
@@ -105,23 +108,21 @@ public class SemanticPass extends VisitorAdaptor {
 //        LogUtils.logInfo("Returning fully qualified name");
 
         if (currentClass != null && !inStaticDef) {
-            // check if field is static
-            String classQualifiedName = currentClassCoreName + "." + name;
-            String staticVarName = getNamespaceQualifiedName(classQualifiedName);
+            // check if field is a static class field for all the classes along the hierarchy
+            Struct currentClassTypeToCheck = currentClass.getType();
+            while (currentClassTypeToCheck != TabExtended.noType) {
+                String classQualifiedName = currentClassTypeToCheck + "." + name;
 
-            Set<String> staticClassFieldsSet = staticClassFields.get(currentClassCoreName);
-            assert staticClassFieldsSet != null;
+                if (TabExtended.find(classQualifiedName) != TabExtended.noObj) {
+                    return classQualifiedName;
+                }
 
-            if (staticClassFieldsSet.contains(staticVarName)) {
-                return staticVarName;
+                currentClassTypeToCheck = currentClassTypeToCheck.getElemType();
             }
         }
 
+        // return non-static class fields
         return getNamespaceQualifiedName(name);
-    }
-
-    String getCoreClassName(Struct type) {
-        return classCoreNames.get(type);
     }
 
     int currentVarDeclObjKind() {

@@ -1,7 +1,9 @@
-package semantics.decorators;
+package semantics.adaptors;
 
 import rs.etf.pp1.symboltable.concepts.Struct;
 import rs.etf.pp1.symboltable.structure.SymbolDataStructure;
+
+import java.util.Objects;
 
 public class StructExtended extends Struct {
     private String name = null;
@@ -44,7 +46,9 @@ public class StructExtended extends Struct {
             // find if dest class exists in src hierarchy
             Struct currType = this;
             while (currType != TabExtended.noType) {
-                if (currType == dest) return true;
+                // compare names in hierarchy
+                if (Objects.equals(currType.toString(), dest.toString()))
+                    return true;
                 currType = currType.getElemType(); // go up the hierarchy
             }
 

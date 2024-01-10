@@ -3,13 +3,11 @@ package semantics.visitors;
 import ast.*;
 import rs.etf.pp1.symboltable.concepts.Obj;
 import rs.etf.pp1.symboltable.concepts.Struct;
-import semantics.decorators.StructExtended;
-import semantics.decorators.TabExtended;
+import semantics.adaptors.StructExtended;
+import semantics.adaptors.TabExtended;
 import semantics.util.LogUtils;
-import semantics.util.ObjList;
 
 import java.util.Collection;
-import java.util.HashSet;
 
 public class ClassVisitor extends VisitorAdaptor {
     private final SemanticPass semanticPass;
@@ -26,7 +24,6 @@ public class ClassVisitor extends VisitorAdaptor {
         // reset everything
         semanticPass.currentClass = null;
         semanticPass.currentClassCoreName = null;
-        semanticPass.currentClassSupertype = null;
         semanticPass.currentMethodsToOverload.clear();
     }
 
@@ -52,45 +49,34 @@ public class ClassVisitor extends VisitorAdaptor {
     }
 
     public void visit(ExtendsClauseExists extendsClauseExists) {
-        semanticPass.currentClassSupertype = extendsClauseExists.getType().struct;
-
         // supertype exists
+        Struct superClassType = extendsClauseExists.getType().struct;
         Struct currentClassType = semanticPass.currentClass.getType();
-        Struct superClassType = semanticPass.currentClassSupertype;
+        String currentClassName = semanticPass.currentClass.getName();
 
-        String coreClassName = semanticPass.classCoreNames.get(superClassType);
-        assert coreClassName != null;
+        // set supertype and name for toString
+        assert currentClassType.getClass() == StructExtended.class;
+        ((StructExtended) currentClassType).setName(currentClassName);
 
-        semanticPass.classCoreNames.put(currentClassType, coreClassName);
-        semanticPass.currentClassCoreName = coreClassName;
-
-        // set name for toString to core class name
-        ((StructExtended) currentClassType).setName(coreClassName);
+        // Set supertype
+        if (superClassType.getKind() != Struct.Class) {
+            LogUtils.logError("Extends clause only allowed with class type", extendsClauseExists);
+            currentClassType.setElementType(TabExtended.noType);
+        } else {
+            currentClassType.setElementType(superClassType);
+        }
     }
 
     public void visit(ExtendsClauseEmpty extendsClauseEmpty) {
+        // Set supertype
         Struct currentClassType = semanticPass.currentClass.getType();
-        String currentClassName = semanticPass.currentClass.getName();
-        semanticPass.classCoreNames.put(currentClassType, currentClassName);
-        // core class name for base class is the name itself
-
-        semanticPass.currentClassCoreName = currentClassName;
+        currentClassType.setElementType(TabExtended.noType);
     }
 
     public void visit(StaticVarDeclListExists staticVarDeclList) {
-        ObjList objList = staticVarDeclList.getVarDecl().objlist;
-        String currentClass = semanticPass.currentClassCoreName;
-
-        semanticPass.staticClassFields.putIfAbsent(currentClass, new HashSet<>());
-        HashSet<String> staticClasses = semanticPass.staticClassFields.get(currentClass);
-
-        objList.forEach(obj -> staticClasses.add(obj.getName()));
     }
 
     public void visit(StaticVarDeclListEmpty staticVarDeclList) {
-        String currentClass = semanticPass.currentClassCoreName;
-
-        semanticPass.staticClassFields.putIfAbsent(currentClass, new HashSet<>());
     }
 
     public void visit(StaticInitializerStart staticInitializerStart) {
@@ -108,36 +94,15 @@ public class ClassVisitor extends VisitorAdaptor {
         // add virtual table function pointer
         TabExtended.insert(Obj.Fld, "@vftp", TabExtended.intType);
 
-        Struct currentClassType = this.semanticPass.currentClass.getType();
-        Struct superClassType = semanticPass.currentClassSupertype;
-        if (superClassType == null) {
-            currentClassType.setElementType(TabExtended.noType); // root class
-            return;
-        }
+        Struct superClassType = semanticPass.currentClass.getType().getElemType();
 
         // do everything regarding extends clause here
-        if (superClassType.getKind() != Struct.Class) {
-            LogUtils.logError("Extends clause only allowed with class type", staticInitListEmpty);
-        } else {
-            currentClassType.setElementType(superClassType); // set type from inherited class
-
-            Collection<Obj> members = superClassType.getMembers();
-            for (Obj obj : members) {
-                if (obj.getKind() == Obj.Meth) {
-                    semanticPass.currentMethodsToOverload.add(obj.getName());
-                }
-
-                Obj cloned = TabExtended.insert(obj.getKind(), obj.getName(), obj.getType());
-                cloned.setFpPos(obj.getFpPos()); // ensure this is ok for methods
-
-                TabExtended.openScope();
-                // copy locals for methods
-                for (Obj local : obj.getLocalSymbols()) {
-                    TabExtended.insert(local.getKind(), local.getName(), local.getType());
-                }
-                TabExtended.chainLocalSymbols(cloned);
-                TabExtended.closeScope();
+        Collection<Obj> members = superClassType.getMembers();
+        for (Obj obj : members) {
+            if (obj.getKind() == Obj.Meth) {
+                semanticPass.currentMethodsToOverload.put(obj.getName(), obj.getType());
             }
+            TabExtended.insertChangeable(obj);
         }
     }
 }

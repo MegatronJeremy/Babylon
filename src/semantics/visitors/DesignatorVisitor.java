@@ -4,7 +4,7 @@ import ast.*;
 import rs.etf.pp1.symboltable.concepts.Obj;
 import rs.etf.pp1.symboltable.concepts.Scope;
 import rs.etf.pp1.symboltable.concepts.Struct;
-import semantics.decorators.TabExtended;
+import semantics.adaptors.TabExtended;
 import semantics.util.LogUtils;
 import semantics.util.ObjList;
 import semantics.util.StructList;
@@ -64,7 +64,7 @@ public class DesignatorVisitor extends VisitorAdaptor {
             obj = type.getMembersTable().searchKey(identifier);
         } else {
             // is static member - name is global
-            String name = semanticPass.getCoreClassName(type) + "." + identifier;
+            String name = type + "." + identifier;
             obj = TabExtended.find(name);
         }
 
@@ -73,15 +73,8 @@ public class DesignatorVisitor extends VisitorAdaptor {
                             + identifier
                             + " is not a class member",
                     syntaxNode);
-        } else if (design.getKind() == Obj.Type &&
-                !semanticPass.staticClassFields.get(design.getName()).contains(obj.getName())) {
-            // can only return static class field
-            LogUtils.logError("Symbol "
-                            + obj.getName()
-                            + " is not a static class field",
-                    syntaxNode);
 
-            obj = null;
+            obj = TabExtended.noObj;
         }
 
         return obj;
@@ -150,18 +143,18 @@ public class DesignatorVisitor extends VisitorAdaptor {
             StringBuilder sb = new StringBuilder();
             sb.append("Incompatible assignment expression for types ");
 
-            sb.append(LogUtils.structKindToString(lType.getKind()));
+            sb.append(lType);
             if (lType.getKind() == Struct.Array) {
                 sb.append("[");
-                sb.append(LogUtils.structKindToString(lType.getElemType().getKind()));
+                sb.append(lType.getElemType());
                 sb.append("]");
             }
             sb.append(" and ");
 
-            sb.append(LogUtils.structKindToString(rType.getKind()));
+            sb.append(rType);
             if (rType.getKind() == Struct.Array) {
                 sb.append("[");
-                sb.append(LogUtils.structKindToString(rType.getElemType().getKind()));
+                sb.append(rType.getElemType());
                 sb.append("]");
             }
 
@@ -181,7 +174,6 @@ public class DesignatorVisitor extends VisitorAdaptor {
         qualifiedFuncNameSB.append("$");
         String fullFuncName = qualifiedFuncNameSB.toString();
 
-        // TODO make this work with classes as well
         Obj func;
         if (semanticPass.currentMethodCallIsClassStack.pop()) {
             // find in class object

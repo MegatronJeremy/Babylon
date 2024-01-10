@@ -52,10 +52,20 @@ public class ExprVisitor extends VisitorAdaptor {
 
         // store vftp of class
         Integer vftpAddr = CodeGenerator.getInstance().vftpMap.get(type);
+
         Code.put(Code.dup); // duplicate address
-        Code.loadConst(vftpAddr); // put val on stack
+
+        // put val on stack
+        if (vftpAddr == null) {
+            // save fixup for later
+            Code.put(Code.const_);
+            Code.put4(0);
+            CodeGenerator.getInstance().vftpFixupQueue.add(Code.pc - 4);
+        } else {
+            Code.loadConst(vftpAddr);
+        }
+
         Code.put(Code.putfield); // store vftp
         Code.put2(0);
     }
-
 }

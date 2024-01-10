@@ -5,10 +5,14 @@ import rs.etf.pp1.symboltable.concepts.Obj;
 import rs.etf.pp1.symboltable.concepts.Struct;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
+import java.util.Queue;
 
 public class CodeGenerator extends VisitorAdaptor {
     private static CodeGenerator instance = null;
+    final Map<Struct, Integer> vftpMap = new HashMap<>();
+    final Queue<Integer> vftpFixupQueue = new LinkedList<>();
     private final VisitorAdaptor statementVisitor = new StatementVisitor();
     private final VisitorAdaptor methodVisitor = new MethodVisitor();
     private final VisitorAdaptor designatorVisitor = new DesignatorVisitor();
@@ -17,7 +21,6 @@ public class CodeGenerator extends VisitorAdaptor {
     int mainFixupAddr;
     Integer mainPC = null;
     Obj currentClass = null;
-    Map<Struct, Integer> vftpMap = new HashMap<>();
 
     private CodeGenerator() {
     }

@@ -4,7 +4,7 @@ import ast.ProgName;
 import ast.Program;
 import ast.VisitorAdaptor;
 import rs.etf.pp1.symboltable.concepts.Obj;
-import semantics.decorators.TabExtended;
+import semantics.adaptors.TabExtended;
 import semantics.util.LogUtils;
 
 public class ProgramVisitor extends VisitorAdaptor {

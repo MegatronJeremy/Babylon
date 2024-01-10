@@ -1,12 +1,14 @@
 package codegen.visitors;
 
 import ast.*;
+import codegen.adaptors.CodeExtended;
 import rs.etf.pp1.mj.runtime.Code;
 import rs.etf.pp1.symboltable.concepts.Obj;
 import rs.etf.pp1.symboltable.concepts.Struct;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Queue;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -30,6 +32,15 @@ public class ClassVisitor extends VisitorAdaptor {
         // put both for now - later the false one will be overwritten
         previousFixupAddr = Code.pc - 2;
         CodeGenerator.getInstance().mainFixupAddr = previousFixupAddr;
+    }
+
+    private void fixupVFTP(int vftpAddr) {
+        Queue<Integer> vftpFixupQueue = CodeGenerator.getInstance().vftpFixupQueue;
+
+        while (!vftpFixupQueue.isEmpty()) {
+            Integer nextAddr = vftpFixupQueue.poll();
+            CodeExtended.fixup4(nextAddr, vftpAddr);
+        }
     }
 
     public void visit(ExtendsClauseExists extendsClauseExists) {
@@ -70,6 +81,8 @@ public class ClassVisitor extends VisitorAdaptor {
 
         // add vftp to global memory and set the class pointer value
         CodeGenerator.getInstance().vftpMap.put(classType, Code.dataSize); // adr is equal to this value
+
+        fixupVFTP(Code.dataSize);
 
         Consumer<Integer> writeBytecode =
                 integer -> {

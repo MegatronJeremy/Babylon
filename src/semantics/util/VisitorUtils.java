@@ -3,7 +3,7 @@ package semantics.util;
 import ast.SyntaxNode;
 import rs.etf.pp1.symboltable.concepts.Obj;
 import rs.etf.pp1.symboltable.concepts.Struct;
-import semantics.decorators.TabExtended;
+import semantics.adaptors.TabExtended;
 import semantics.visitors.SemanticPass;
 
 public class VisitorUtils {
@@ -21,12 +21,16 @@ public class VisitorUtils {
         TabExtended.currentScope().addToLocals(objNode);
     }
 
-    public static void checkAlreadyDeclared(String name, SyntaxNode syntaxNode) {
-        if (TabExtended.currentScope.findSymbol(name) != null && !SemanticPass.getInstance().canDeclareMethod(name)) {
+    public static boolean checkAlreadyDeclared(String name, Struct type, SyntaxNode syntaxNode) {
+        if (TabExtended.currentScope.findSymbol(name) != null && !SemanticPass.getInstance().canDeclareMethod(name, type)) {
             LogUtils.logError("Symbol with name "
                     + name + " already declared", syntaxNode);
+
+            return true;
         } else {
             LogUtils.logInfo("Declared symbol " + name, syntaxNode);
+
+            return false;
         }
     }
 

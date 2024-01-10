@@ -1,4 +1,4 @@
-package semantics.decorators;
+package semantics.adaptors;
 
 import rs.etf.pp1.symboltable.concepts.Struct;
 import rs.etf.pp1.symboltable.visitors.DumpSymbolTableVisitor;

@@ -3,7 +3,7 @@ package semantics.visitors;
 import ast.*;
 import rs.etf.pp1.symboltable.concepts.Obj;
 import rs.etf.pp1.symboltable.concepts.Struct;
-import semantics.decorators.TabExtended;
+import semantics.adaptors.TabExtended;
 import semantics.util.LogUtils;
 import semantics.util.ObjList;
 

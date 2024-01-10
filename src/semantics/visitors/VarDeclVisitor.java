@@ -3,8 +3,8 @@ package semantics.visitors;
 import ast.*;
 import rs.etf.pp1.symboltable.concepts.Obj;
 import rs.etf.pp1.symboltable.concepts.Struct;
-import semantics.decorators.StructExtended;
-import semantics.decorators.TabExtended;
+import semantics.adaptors.StructExtended;
+import semantics.adaptors.TabExtended;
 import semantics.util.ObjList;
 import semantics.util.VisitorUtils;
 
